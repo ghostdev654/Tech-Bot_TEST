@@ -22,19 +22,21 @@ const tags = {
 
 const defaultMenu = {
   before: `
-ꕥ🌤 *Hola, soy %botname* ꕥ🐥
+👋 *Hola, soy %botname*
+
+*_🤖 TIPO:_*
 > %tipo
 
 > 👋 Hola *%name*, %greeting*
 
-> 📅 Fecha: *%date*
-> ⏳ Tiempo activo: *%uptime*
+📅 Fecha: *%date*
+⏳ Tiempo activo: *%uptime*
 %readmore`.trimStart(),
 
-  header: '\n*%category* 💚',
-  body: '> ꕥ %cmd %islimit %isPremium',
-  footer: '',
-  after: '\n🌤 𝖢𝗋𝖾𝖺𝗍𝖾𝖽 𝖡𝗒 𝖠𝖽𝗈 ꕥ',
+  header: '\n*╭━━━━➤* *%category* ’',
+  body: '*┃ °* %cmd %islimit %isPremium',
+  footer: '*╰━━━━━━━━━━━━*',
+  after: '\n> Powered By: *Tech-Bot Team*',
 }
 
 const handler = async (m, { conn, usedPrefix: _p }) => {
