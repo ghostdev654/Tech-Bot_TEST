@@ -1,5 +1,5 @@
 console.clear()
-console.log('🗣️ Iniciando Michi Wa Bot...')
+console.log('🟢 CARGANDO...')
 
 import { join, dirname } from 'path'
 import { createRequire } from 'module'
@@ -12,7 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(__dirname)
 
 
-cfonts.say('✧ Michi Wa ✧', {
+cfonts.say('Tech-Bot V1', {
   font: 'block',        
   align: 'center',
   gradient: ['cyan', 'magenta'],
@@ -20,7 +20,7 @@ cfonts.say('✧ Michi Wa ✧', {
 })
 
 
-cfonts.say('💎 made by Ado 📍', {
+cfonts.say('Made by Ado', {
   font: 'console',     
   align: 'center',
   gradient: ['cyan', 'white'],
