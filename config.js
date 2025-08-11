@@ -4,7 +4,11 @@ import { fileURLToPath } from 'url'
 
 global.owner = [
   ['5491151545427', 'ghostdev.js', true],
-  ['573133374132', 'yo soy yo', true]
+  ['573133374132', 'yo soy yo', true],
+  ['114847912059070', 'ghostdev.js', true],
+  ['114847912059070', 'Yo Soy Yo', true],
+  
+  
 ]
 
 global.mods = []
@@ -12,8 +16,8 @@ global.prems = []
 
 global.namebot = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
 global.packname = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
-global.author = '✨ Build By: Ado ✨'
-global.moneda = 'coind'
+global.author = '🖥️ 𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲:𝘛𝘦𝘤𝘩𝘉𝘰𝘵 𝘛𝘦𝘢𝘮'
+global.moneda = '💲 coins'
 
 global.libreria = 'Baileys'
 global.baileys = 'V 6.7.16'
