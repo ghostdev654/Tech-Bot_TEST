@@ -4,18 +4,18 @@ import { xpRange } from '../lib/levelling.js'
 
 const tags = {
   serbot: '🌐 SUBBOTS',
-  eco: '💸 ECONOMÍA',
   downloader: '⬇️ DESCARGAS',
   tools: '🛠️ HERRAMIENTAS',
+  ia: '🤖 IA',
   owner: '👑 PROPIETARIO',
   info: 'ℹ️ INFORMACIÓN',
   game: '🎮 JUEGOS',
+  group: '👥 GRUPOS',
   gacha: '🎲 GACHA ANIME',
   reacciones: '💕 ANIME REACCIONES',
-  group: '👥 GRUPOS',
+  eco: '💸 ECONOMÍA',
   search: '🔎 BUSCADORES',
   sticker: '📌 STICKERS',
-  ia: '🤖 IA',
   channel: '📺 CANALES',
   fun: '😂 DIVERSIÓN',
 }
