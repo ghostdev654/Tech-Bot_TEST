@@ -3,16 +3,16 @@ import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 
 global.owner = [
-  ['50493732693', 'Ado', true],
+  ['5491151545427', 'ghostdev.js', true],
 ]
 
 global.mods = []
 global.prems = []
 
-global.namebot = '🎋 𝖬𝗂𝖼𝗁𝗂 - 𝖠𝖨 🫑'
-global.packname = '🧩 ᴍɪᴄʜɪ ʙᴏᴛ 🌿'
-global.author = '🍁 𝖬𝖺𝖽𝖾 𝗐𝗂𝗍𝗁 𝖻𝗒 🐦‍🔥 𝖠𝖽𝗈'
-global.moneda = '˒˒⭐˓˓ 𝘔𝘢𝘯𝘨𝘰𝘴 🪼'
+global.namebot = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
+global.packname = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
+global.author = '✨ Build By: Ado ✨'
+global.moneda = 'coind'
 
 global.libreria = 'Baileys'
 global.baileys = 'V 6.7.16'
@@ -22,17 +22,17 @@ global.jadi = 'JadiBots'
 global.yukiJadibts = true
 
 global.namecanal = '❇️'
-global.idcanal = '120363403739366547@newsletter'
-global.idcanal2 = '120363402159669836@newsletter'
-global.canal = 'https://whatsapp.com/channel/0029Vb5pM031CYoMvQi2I02D'
-global.canalreg = '120363402895449162@newsletter'
+global.idcanal = ''
+global.idcanal2 = ''
+global.canal = ''
+global.canalreg = ''
 
 global.ch = {
-  ch1: '120363420941524030@newsletter'
+  ch1: ''
 }
 
 global.multiplier = 69
-global.maxwarn = '2'
+global.maxwarn = '3'
 
 
 
