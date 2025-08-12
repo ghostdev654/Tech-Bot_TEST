@@ -35,7 +35,7 @@ const defaultMenu = {
 
   header: '\n*╭━━━━➤* *%category* ’',
   body: '*┃ °* %cmd %islimit %isPremium',
-  footer: '*╰━━━━━━━━━━━━*',
+  footer: '*╰━━━━━━━━━━━━━━━*',
   after: '\n> Powered By: *Tech-Bot Team*',
 }
 
