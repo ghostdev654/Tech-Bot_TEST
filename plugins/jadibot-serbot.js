@@ -74,7 +74,7 @@ let phoneNumber
 if (command === 'code') {
   if (!args[0]) return m.reply('*_Ejemplo:_*' + usedPrefix + command + ' 57123456789')
   phoneNumber = args[0].replace(/[^0-9]/g, '')
-  if (phoneNumber.length < 8) return m.reply('Número de teléfono inválido.')
+  if (phoneNumber.length < 8) return m.reply('❌ *Número de teléfono inválido.*')
   const [result] = await conn.onWhatsApp(phoneNumber)
   if (!result || !result.exists) return m.reply('❌ *El número no está registrado en WhatsApp.*')
   id = phoneNumber
