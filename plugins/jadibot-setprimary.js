@@ -1,12 +1,22 @@
 import fs from 'fs'
 import path from 'path'
 
-let handler = async (m, { text }) => {
-  if (!text || !text.replace(/[^0-9]/g, '')) {
-    return m.reply('Debes etiquetar al bot que quieres hacer principal en este grupo.')
+let handler = async (m, { text, conn }) => {
+  let mentioned = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : null
+  let number
+
+  if (mentioned) {
+    number = mentioned.split('@')[0]
+  } else if (text && text.replace(/[^0-9]/g, '')) {
+    number = text.replace(/[^0-9]/g, '')
+  } else {
+    return m.reply('Debes mencionar al bot que quieres hacer principal o proporcionar su número. Ejemplo: .setprimary @bot o .setprimary 1234567890')
   }
 
-  let number = text.replace(/[^0-9]/g, '')
+  if (!number || number.length < 8) {
+    return m.reply('Número inválido. Asegúrate de proporcionar un número de teléfono válido.')
+  }
+
   let botJid = number + '@s.whatsapp.net'
   let subbotPath = path.join('./JadiBots', number, 'creds.json')
 
@@ -22,7 +32,7 @@ let handler = async (m, { text }) => {
   m.reply(`✅ El bot principal para este grupo ahora es:\n*${botJid}*`)
 }
 
-handler.help = ['setprimary @bot']
+handler.help = ['setprimary @bot | número']
 handler.tags = ['serbot']
 handler.command = ['setprimary']
 handler.admin = true
