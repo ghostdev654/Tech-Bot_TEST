@@ -20,7 +20,7 @@ global.prems = []
 
 global.namebot = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
 global.packname = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
-global.author = '🖥️ 𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲:𝘛𝘦𝘤𝘩𝘉𝘰𝘵 𝘛𝘦𝘢𝘮'
+global.author = '🖥️ 𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲: 𝘛𝘦𝘤𝘩𝘉𝘰𝘵 𝘛𝘦𝘢𝘮'
 global.moneda = '💲 coins'
 
 global.libreria = 'Baileys'
@@ -30,7 +30,7 @@ global.sessions = 'Sessions'
 global.jadi = 'JadiBots'
 global.yukiJadibts = true
 
-global.namecanal = '❇️'
+global.namecanal = ''
 global.idcanal = ''
 global.idcanal2 = ''
 global.canal = ''
