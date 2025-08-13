@@ -18,6 +18,7 @@ let handler = async (m, { conn }) => {
 
 handler.command = ['testbotones'];
 handler.help = ['testbotones'];
-handler.tags = ['test'];
+handler.tags = ['owner'];
+handler.rowner = true
 
 export default handler;
