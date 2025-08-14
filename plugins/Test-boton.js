@@ -1,51 +1,36 @@
-let handler = async (m, { conn }) => {
-    // Si cita un mensaje, revisa ese usuario, si no, al que ejecuta el comando
-    let targetJid = m.quoted ? m.quoted.sender : m.sender
-    const nombre = await conn.getName(targetJid)
+const handler = async (m, { conn }) => {
+  try {
+    // Si citó un mensaje, usamos ese JID, si no, el del autor
+    let target = m.quoted ? m.quoted.sender : m.sender
 
-    let isBusiness = null // null = no verificado, true = business, false = normal
-
-    try {
-        // 1️⃣ Intentar método oficial
-        try {
-            const profile = await conn.fetchBusinessProfile(targetJid)
-            if (profile && (profile.verifiedName || profile.description || profile.wid)) {
-                isBusiness = true
-            } else {
-                isBusiness = false
-            }
-        } catch {
-            // ignorar error y pasar al siguiente método
-        }
-
-        // 2️⃣ Si no se pudo determinar, intentar con onWhatsApp
-        if (isBusiness === null) {
-            try {
-                const waInfo = await conn.onWhatsApp(targetJid)
-                if (waInfo?.[0]?.verifiedName) {
-                    isBusiness = true
-                } else if (waInfo?.length) {
-                    isBusiness = false
-                }
-            } catch {}
-        }
-
-        // 3️⃣ Resultado final
-        let respuesta
-        if (isBusiness === true) {
-            respuesta = `✅ *${nombre}* usa *WhatsApp Business*.`
-        } else if (isBusiness === false) {
-            respuesta = `❌ *${nombre}* usa *WhatsApp normal*.`
-        } else {
-            respuesta = `⚠️ No se pudo determinar si *${nombre}* usa WhatsApp Business.`
-        }
-
-        await conn.reply(m.chat, respuesta, m)
-
-    } catch (err) {
-        console.error(err)
-        await conn.reply(m.chat, '⚠️ Error al verificar el tipo de cuenta.', m)
+    // Intentar resolver si es LID o no es un JID numérico
+    if (!/@s\.whatsapp\.net$/.test(target)) {
+      let res = await conn.onWhatsApp(target)
+      if (res && res[0]?.jid) target = res[0].jid
     }
+
+    // Intentar obtener número limpio
+    let numero = target.split('@')[0]
+
+    // Intentar obtener perfil Business
+    let business = null
+    try {
+      business = await conn.fetchBusinessProfile(target)
+    } catch (e) {
+      // Si falla, ignoramos
+    }
+
+    let nombre = await conn.getName(target)
+
+    if (business?.businessProfile) {
+      await m.reply(`✅ *${nombre}* (${numero}) usa *WhatsApp Business*.`)
+    } else {
+      await m.reply(`❌ *${nombre}* (${numero}) usa *WhatsApp normal*.`)
+    }
+  } catch (err) {
+    console.error(err)
+    await m.reply('⚠️ No se pudo verificar el tipo de cuenta.')
+  }
 }
 
 handler.command = ["isbsn"]
