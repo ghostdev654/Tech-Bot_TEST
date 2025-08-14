@@ -146,7 +146,6 @@ conn.reply(m.chat, '❎ Lo sentimos, el menú tiene un error.', m)
 }
 
 handler.command = ['menu', 'help', 'menú']
-handler.register = true
 export default handler
 
 // Utilidades
