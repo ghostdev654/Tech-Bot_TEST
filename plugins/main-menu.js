@@ -41,10 +41,10 @@ const defaultMenu = {
 
 async function checkIsBusiness(conn, jid) {
   try {
-    const profile = await conn.fetchBusinessProfile(jid);
-    return !!profile;
+    const profile = await conn.fetchBusinessProfile(jid)
+    return !!profile
   } catch {
-    return false;
+    return false
   }
 }
 
@@ -139,28 +139,38 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
       ? { url: bannerFinal }
       : fs.readFileSync(bannerFinal)
 
-    const isBusiness = await checkIsBusiness(conn, m.sender)
+    // 🔹 Verificamos si el remitente o el bot son Business
+    const isBusinessUser = await checkIsBusiness(conn, m.sender)
+    const isBusinessBot = await checkIsBusiness(conn, conn.user.jid)
 
-    const buttons = isBusiness ? [] : [
-      { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
-    ]
+    const noButtons = isBusinessUser || isBusinessBot
 
-    const buttonMessage = {
-      image: imageContent,
-      caption: text.trim(),
-      footer: 'Powered by: *Tech-Bot Team*',
-      buttons: buttons,
-      headerType: 4
+    if (noButtons) {
+      // Enviar solo imagen + texto sin botones
+      await conn.sendMessage(m.chat, {
+        image: imageContent,
+        caption: text.trim(),
+        footer: 'Powered by: *Tech-Bot Team*'
+      }, { quoted: m, mentions: conn.parseMention(text) })
+    } else {
+      // Enviar con botones
+      const buttons = [
+        { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
+      ]
+      await conn.sendMessage(m.chat, {
+        image: imageContent,
+        caption: text.trim(),
+        footer: 'Powered by: *Tech-Bot Team*',
+        buttons,
+        headerType: 4
+      }, { quoted: m, mentions: conn.parseMention(text) })
     }
-
-    await conn.sendMessage(m.chat, buttonMessage, { quoted: m, mentions: conn.parseMention(text) })
 
   } catch (e) {
     console.error('❌ Error en el menú:', e)
     conn.reply(m.chat, '❎ Lo sentimos, el menú tiene un error.', m)
   }
 }
-
 handler.command = ['menu', 'help', 'menú']
 handler.register = true
 export default handler
