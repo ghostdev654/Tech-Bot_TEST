@@ -1,37 +1,27 @@
-const handler = async (m, { conn }) => {
-  try {
-    // Si citó un mensaje, usamos ese JID, si no, el del autor
-    let target = m.quoted ? m.quoted.sender : m.sender
-
-    // Intentar resolver si es LID o no es un JID numérico
-    if (!/@s\.whatsapp\.net$/.test(target)) {
-      let res = await conn.onWhatsApp(target)
-      if (res && res[0]?.jid) target = res[0].jid
-    }
-
-    // Intentar obtener número limpio
-    let numero = target.split('@')[0]
-
-    // Intentar obtener perfil Business
-    let business = null
-    try {
-      business = await conn.fetchBusinessProfile(target)
-    } catch (e) {
-      // Si falla, ignoramos
-    }
-
-    let nombre = await conn.getName(target)
-
-    if (business?.businessProfile) {
-      await m.reply(`✅ *${nombre}* (${numero}) usa *WhatsApp Business*.`)
-    } else {
-      await m.reply(`❌ *${nombre}* (${numero}) usa *WhatsApp normal*.`)
-    }
-  } catch (err) {
-    console.error(err)
-    await m.reply('⚠️ No se pudo verificar el tipo de cuenta.')
+let handler = async (m, { conn, args }) => {
+  if (args.length < 1) {
+    return m.reply('Uso: .isbsn <número>\nEjemplo: .isbsn 57123456789')
   }
+
+  let number = args[0].replace(/[^0-9]/g, '')
+  if (!number || number.length < 8) {
+    return m.reply('Número inválido.')
+  }
+
+  let jid = number + '@s.whatsapp.net'
+  let isBusiness = false
+  try {
+    const profile = await conn.fetchBusinessProfile(jid)
+    isBusiness = !!profile
+  } catch {
+    isBusiness = false
+  }
+
+  m.reply(`El número *${number}* ${isBusiness ? 'es una cuenta de WhatsApp Business.' : 'NO es una cuenta de WhatsApp Business.'}`)
 }
 
-handler.command = ["isbsn"]
+handler.help = ['isbsn <número>']
+handler.tags = ['tools']
+handler.command = ['isbsn']
+
 export default handler
