@@ -1,6 +1,13 @@
 let handler = async (m, { conn }) => {
 
   async function checkIsBusiness(jid) {
+    // 1️⃣ Revisar si está en la agenda del bot
+    let contactInfo = conn.contacts?.[jid] || conn.store?.contacts?.[jid]
+    if (contactInfo && typeof contactInfo.isBusiness !== 'undefined') {
+      return contactInfo.isBusiness
+    }
+
+    // 2️⃣ Si no hay datos, intentar consultar a WhatsApp
     try {
       const profile = await conn.fetchBusinessProfile(jid)
       return !!(profile && Object.keys(profile).length)
@@ -9,14 +16,8 @@ let handler = async (m, { conn }) => {
     }
   }
 
-  // Si cita a alguien, lo usa; si no, si pone "bot", revisa el bot; si no, revisa al remitente
-  let targetJid
-  if (m.text.toLowerCase().includes('bot')) {
-    targetJid = conn.user.id // JID del propio bot
-  } else {
-    targetJid = m.quoted ? m.quoted.sender : m.sender
-  }
-
+  // Detectar objetivo: citado o remitente
+  let targetJid = m.quoted ? m.quoted.sender : m.sender
   const isBusiness = await checkIsBusiness(targetJid)
   const nombre = await conn.getName(targetJid)
 
