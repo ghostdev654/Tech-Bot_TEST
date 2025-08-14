@@ -1,6 +1,6 @@
 let handler = async (m, { conn, args }) => {
   if (args.length < 1) {
-    return m.reply('Uso: .isbsn <número>\nEjemplo: .isbsn 57123456789')
+    return m.reply('Uso: .isbsn <número>\nEjemplo: .isbsn 5491128967565')
   }
 
   let number = args[0].replace(/[^0-9]/g, '')
@@ -9,15 +9,14 @@ let handler = async (m, { conn, args }) => {
   }
 
   let jid = number + '@s.whatsapp.net'
-  let isBusiness = false
+  let v
   try {
-    const profile = await conn.fetchBusinessProfile(jid)
-    isBusiness = !!profile
+    v = await conn.getBusinessProfile(jid)
   } catch {
-    isBusiness = false
+    v = null
   }
-
-  m.reply(`El número *${number}* ${isBusiness ? 'es una cuenta de WhatsApp Business.' : 'NO es una cuenta de WhatsApp Business.'}`)
+  if (!v) return m.reply("No es business")
+  return m.reply("Es Business")
 }
 
 handler.help = ['isbsn <número>']
