@@ -48,4 +48,6 @@ let handler = async (m, { conn }) => {
 }
 
 handler.command = ["test1"]
+handler.rowner = true
+hanlder.tags = ["owner]
 export default handler
