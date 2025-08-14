@@ -127,14 +127,20 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
 
     const isURL = typeof bannerFinal === 'string' && /^https?:\/\//i.test(bannerFinal)
     const imageContent = isURL
-      ? { image: { url: bannerFinal } }
-      : { image: fs.readFileSync(bannerFinal) }
+      ? { url: bannerFinal }
+      : fs.readFileSync(bannerFinal)
 
-    await conn.sendMessage(m.chat, {
-      ...imageContent,
+    const buttonMessage = {
+      image: imageContent,
       caption: text.trim(),
-      mentionedJid: conn.parseMention(text)
-    }, { quoted: m })
+      footer: 'Powered by: *Tech-Bot Team*',
+      buttons: [
+        { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
+      ],
+      headerType: 4
+    }
+
+    await conn.sendMessage(m.chat, buttonMessage, { quoted: m, mentions: conn.parseMention(text) })
 
   } catch (e) {
     console.error('❌ Error en el menú:', e)
