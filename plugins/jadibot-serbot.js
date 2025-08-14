@@ -80,12 +80,26 @@ return m.reply(`No se han encontrado espacios para *Sub-Bots* disponibles.`)
 
 const isBusiness = await checkIsBusiness(conn, m.sender);
 
+let selectedMethod = ''
+if (m.message?.buttonsResponseMessage) {
+  const selectedId = m.message.buttonsResponseMessage.selectedButtonId
+  if (selectedId === 'scan_qr') {
+    selectedMethod = 'qr'
+  } else if (selectedId === 'get_code') {
+    selectedMethod = 'code'
+  }
+}
+
+if (selectedMethod) {
+  command = selectedMethod
+}
+
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id
 let phoneNumber
 if (command === 'code') {
-  if (!args[0]) return m.reply('*_Ejemplo:_*' + usedPrefix + command + ' 57123456789')
-  phoneNumber = args[0].replace(/[^0-9]/g, '')
+  if (!args[0] && !selectedMethod) return m.reply('*_Ejemplo:_*' + usedPrefix + command + ' 57123456789')
+  phoneNumber = args[0] ? args[0].replace(/[^0-9]/g, '') : m.sender.split`@`[0]
   if (phoneNumber.length < 8) return m.reply('❌ *Número de teléfono inválido.*')
   const [result] = await conn.onWhatsApp(phoneNumber)
   if (!result || !result.exists) return m.reply('❌ *El número no está registrado en WhatsApp.*')
@@ -94,11 +108,10 @@ if (command === 'code') {
   id = `${who.split`@`[0]}`
 }
 
-if (!isBusiness) {
-  // Para WhatsApp normal, enviar botones para elegir método
+if (!isBusiness && !selectedMethod) {
   const buttons = [
-    { buttonId: `${usedPrefix}qr`, buttonText: { displayText: 'Escanear QR' }, type: 1 },
-    { buttonId: `${usedPrefix}code ${phoneNumber || ''}`, buttonText: { displayText: 'Código de 8 dígitos' }, type: 1 }
+    { buttonId: 'scan_qr', buttonText: { displayText: 'Escanear QR' }, type: 1 },
+    { buttonId: 'get_code', buttonText: { displayText: 'Código de 8 dígitos' }, type: 1 }
   ];
   const buttonMessage = {
     text: 'Elige el método de vinculación:',
@@ -107,10 +120,9 @@ if (!isBusiness) {
     headerType: 1
   };
   await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
-  return; // No proceder, esperar a que elijan
+  return;
 }
 
-// Para WhatsApp Business o si es business, proceder directamente
 let pathYukiJadiBot = path.join(`./${jadi}/`, id)
 if (!fs.existsSync(pathYukiJadiBot)){
 fs.mkdirSync(pathYukiJadiBot, { recursive: true })
@@ -198,11 +210,9 @@ secret = secret.match(/.{1,4}/g)?.join("")
 console.log(secret)
 
 if (isBusiness) {
-  // Para Business, enviar texto normal
   txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
   codeBot = await m.reply(secret)
 } else {
-  // Para normal, enviar interactive message con botón de copiar
   const interactiveMessage = {
     viewOnceMessage: {
       message: {
