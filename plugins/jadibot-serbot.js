@@ -97,7 +97,7 @@ yukiJadiBot(yukiJBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
 handler.help = ['serqr', 'sercode']
-handler.tags = ['serbot']
+handler.tags = ['other']
 handler.command = ['serqr', 'sercode']
 export default handler 
 
