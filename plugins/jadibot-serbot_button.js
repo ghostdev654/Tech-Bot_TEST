@@ -13,6 +13,6 @@ let handler = async (m, { conn }) => {
     await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
 }
 
-handler.command = ["testbtn"]
+handler.command = ["code", "qr", "serbot"]
 handler.tags = ["serbot"]
 export default handler
