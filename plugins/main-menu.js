@@ -39,6 +39,15 @@ const defaultMenu = {
   after: '\n> Powered By: *Tech-Bot Team*',
 }
 
+async function checkIsBusiness(conn, jid) {
+  try {
+    const profile = await conn.fetchBusinessProfile(jid);
+    return !!profile;
+  } catch {
+    return false;
+  }
+}
+
 const handler = async (m, { conn, usedPrefix: _p }) => {
   try {
     const { exp, limit, level } = global.db.data.users[m.sender]
@@ -130,13 +139,17 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
       ? { url: bannerFinal }
       : fs.readFileSync(bannerFinal)
 
+    const isBusiness = await checkIsBusiness(conn, m.sender)
+
+    const buttons = isBusiness ? [] : [
+      { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
+    ]
+
     const buttonMessage = {
       image: imageContent,
       caption: text.trim(),
       footer: 'Powered by: *Tech-Bot Team*',
-      buttons: [
-        { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
-      ],
+      buttons: buttons,
       headerType: 4
     }
 
