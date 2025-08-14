@@ -42,9 +42,11 @@ const defaultMenu = {
 async function checkIsBusiness(conn, jid) {
   try {
     const profile = await conn.fetchBusinessProfile(jid)
-    return !!profile
+    // Si devuelve objeto (aunque sea vacío) es Business
+    return profile && typeof profile === 'object'
   } catch {
-    return false
+    // Si da error al consultar, asumimos que es Business para evitar fallos
+    return true
   }
 }
 
@@ -139,21 +141,22 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
       ? { url: bannerFinal }
       : fs.readFileSync(bannerFinal)
 
-    // 🔹 Verificamos si el remitente o el bot son Business
+    // 🔹 Chequeo de Business
     const isBusinessUser = await checkIsBusiness(conn, m.sender)
     const isBusinessBot = await checkIsBusiness(conn, conn.user.jid)
-
     const noButtons = isBusinessUser || isBusinessBot
 
     if (noButtons) {
-      // Enviar solo imagen + texto sin botones
-      await conn.sendMessage(m.chat, {
+      // Enviar solo texto + imagen
+      return await conn.sendMessage(m.chat, {
         image: imageContent,
         caption: text.trim(),
         footer: 'Powered by: *Tech-Bot Team*'
       }, { quoted: m, mentions: conn.parseMention(text) })
-    } else {
-      // Enviar con botones
+    }
+
+    // Intento de envío con botones, con fallback
+    try {
       const buttons = [
         { buttonId: '#speed', buttonText: { displayText: 'Runtime' }, type: 1 }
       ]
@@ -164,6 +167,13 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
         buttons,
         headerType: 4
       }, { quoted: m, mentions: conn.parseMention(text) })
+    } catch {
+      // Fallback si falla envío con botones
+      await conn.sendMessage(m.chat, {
+        image: imageContent,
+        caption: text.trim(),
+        footer: 'Powered by: *Tech-Bot Team*'
+      }, { quoted: m, mentions: conn.parseMention(text) })
     }
 
   } catch (e) {
@@ -171,6 +181,7 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
     conn.reply(m.chat, '❎ Lo sentimos, el menú tiene un error.', m)
   }
 }
+  
 handler.command = ['menu', 'help', 'menú']
 handler.register = true
 export default handler
