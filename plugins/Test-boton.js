@@ -1,35 +1,50 @@
 let handler = async (m, { conn }) => {
-    // Si cita a alguien, usa ese, si no, el remitente
+    // Si cita un mensaje, revisa ese usuario, si no, al que ejecuta el comando
     let targetJid = m.quoted ? m.quoted.sender : m.sender
     const nombre = await conn.getName(targetJid)
 
+    let isBusiness = null // null = no verificado, true = business, false = normal
+
     try {
-        // Forzar envío de vCard
-        let contact = await conn.fetchStatus(targetJid).catch(() => null)
-        let business = false
-
-        // Truco: en WhatsApp Business casi siempre hay vCard con X-WA-BIZ-NAME
-        let vcardCheck = await conn.sendMessage(m.chat, {
-            contacts: {
-                displayName: nombre,
-                contacts: [{ vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${nombre}\nTEL;type=CELL;waid=${targetJid.split('@')[0]}:${nombre}\nEND:VCARD` }]
+        // 1️⃣ Intentar método oficial
+        try {
+            const profile = await conn.fetchBusinessProfile(targetJid)
+            if (profile && (profile.verifiedName || profile.description || profile.wid)) {
+                isBusiness = true
+            } else {
+                isBusiness = false
             }
-        }, { quoted: m }).catch(() => null)
-
-        // Revisar si WhatsApp devolvió info Business
-        if (vcardCheck?.messageStubParameters?.some(p => /X-WA-BIZ/i.test(p))) {
-            business = true
+        } catch {
+            // ignorar error y pasar al siguiente método
         }
 
-        let respuesta = business
-            ? `✅ *${nombre}* usa *WhatsApp Business*.`
-            : `❌ *${nombre}* usa *WhatsApp normal*.`
+        // 2️⃣ Si no se pudo determinar, intentar con onWhatsApp
+        if (isBusiness === null) {
+            try {
+                const waInfo = await conn.onWhatsApp(targetJid)
+                if (waInfo?.[0]?.verifiedName) {
+                    isBusiness = true
+                } else if (waInfo?.length) {
+                    isBusiness = false
+                }
+            } catch {}
+        }
+
+        // 3️⃣ Resultado final
+        let respuesta
+        if (isBusiness === true) {
+            respuesta = `✅ *${nombre}* usa *WhatsApp Business*.`
+        } else if (isBusiness === false) {
+            respuesta = `❌ *${nombre}* usa *WhatsApp normal*.`
+        } else {
+            respuesta = `⚠️ No se pudo determinar si *${nombre}* usa WhatsApp Business.`
+        }
 
         await conn.reply(m.chat, respuesta, m)
 
     } catch (err) {
         console.error(err)
-        await conn.reply(m.chat, '⚠️ Error al verificar.', m)
+        await conn.reply(m.chat, '⚠️ Error al verificar el tipo de cuenta.', m)
     }
 }
 
