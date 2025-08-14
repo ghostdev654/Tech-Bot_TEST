@@ -58,6 +58,16 @@ const __dirname = path.dirname(__filename)
 const yukiJBOptions = {}
 if (global.conns instanceof Array) console.log()
 else global.conns = []
+
+async function checkIsBusiness(conn, jid) {
+  try {
+    const profile = await conn.fetchBusinessProfile(jid);
+    return !!profile;
+  } catch {
+    return false;
+  }
+}
+
 let handler = async (m, { conn, args, usedPrefix, command, isOwner }) => {
 
 let time = global.db.data.users[m.sender].Subs + 120000
@@ -67,6 +77,8 @@ const subBotsCount = subBots.length
 if (subBotsCount === 30) {
 return m.reply(`No se han encontrado espacios para *Sub-Bots* disponibles.`)
 }
+
+const isBusiness = await checkIsBusiness(conn, m.sender);
 
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id
@@ -81,6 +93,24 @@ if (command === 'code') {
 } else {
   id = `${who.split`@`[0]}`
 }
+
+if (!isBusiness) {
+  // Para WhatsApp normal, enviar botones para elegir método
+  const buttons = [
+    { buttonId: `${usedPrefix}qr`, buttonText: { displayText: 'Escanear QR' }, type: 1 },
+    { buttonId: `${usedPrefix}code ${phoneNumber || ''}`, buttonText: { displayText: 'Código de 8 dígitos' }, type: 1 }
+  ];
+  const buttonMessage = {
+    text: 'Elige el método de vinculación:',
+    footer: 'Powered by: *Tech-Bot Team*',
+    buttons: buttons,
+    headerType: 1
+  };
+  await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
+  return; // No proceder, esperar a que elijan
+}
+
+// Para WhatsApp Business o si es business, proceder directamente
 let pathYukiJadiBot = path.join(`./${jadi}/`, id)
 if (!fs.existsSync(pathYukiJadiBot)){
 fs.mkdirSync(pathYukiJadiBot, { recursive: true })
@@ -93,6 +123,7 @@ yukiJBOptions.usedPrefix = usedPrefix
 yukiJBOptions.command = command
 yukiJBOptions.fromCommand = true
 yukiJBOptions.phoneNumber = phoneNumber
+yukiJBOptions.isBusiness = isBusiness
 yukiJadiBot(yukiJBOptions)
 global.db.data.users[m.sender].Subs = new Date * 1
 } 
@@ -102,7 +133,7 @@ handler.command = ['qr', 'code']
 export default handler 
 
 export async function yukiJadiBot(options) {
-let { pathYukiJadiBot, m, conn, args, usedPrefix, command, phoneNumber } = options
+let { pathYukiJadiBot, m, conn, args, usedPrefix, command, phoneNumber, isBusiness } = options
 if (command === 'code') {
 command = 'qr'; 
 args.unshift('code')}
@@ -164,11 +195,40 @@ return
 if (qr && mcode) {
 let secret = await sock.requestPairingCode(phoneNumber || (m.sender.split`@`[0]))
 secret = secret.match(/.{1,4}/g)?.join("")
-
-txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
-codeBot = await m.reply(secret)
-
 console.log(secret)
+
+if (isBusiness) {
+  // Para Business, enviar texto normal
+  txtCode = await conn.sendMessage(m.chat, {text : rtx2}, { quoted: m })
+  codeBot = await m.reply(secret)
+} else {
+  // Para normal, enviar interactive message con botón de copiar
+  const interactiveMessage = {
+    viewOnceMessage: {
+      message: {
+        interactiveMessage: {
+          header: {
+            title: 'Vinculación por Código'
+          },
+          body: {
+            text: rtx2
+          },
+          nativeFlowMessage: {
+            nativeFlowMessage: {
+              buttons: [
+                {
+                  name: 'cta_copy',
+                  buttonParamsJson: `{"display_text":"Copiar Código","id":"copy_code","copy_code":"${secret}"}`
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  };
+  txtCode = await conn.sendMessage(m.chat, interactiveMessage, { quoted: m });
+}
 }
 if (txtCode && txtCode.key) {
 setTimeout(() => { conn.sendMessage(m.sender, { delete: txtCode.key })}, 30000)
