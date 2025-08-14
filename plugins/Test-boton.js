@@ -1,24 +1,51 @@
-// Agrega esto en tu handler de comandos
 let handler = async (m, { conn }) => {
-  const buttons = [
-    { buttonId: 'id1', buttonText: { displayText: 'Botón 1' }, type: 1 },
-    { buttonId: 'id2', buttonText: { displayText: 'Botón 2' }, type: 1 },
-    { buttonId: 'id3', buttonText: { displayText: 'Botón 3' }, type: 1 }
-  ];
 
-  const buttonMessage = {
-    text: "¡Hola! Este es un mensaje de prueba con botones.",
-    footer: 'Prueba de Baileys',
-    buttons: buttons,
-    headerType: 1
-  };
+  async function checkIsBusiness(conn, jid) {
+    try {
+      const profile = await conn.fetchBusinessProfile(jid)
+      return !!(profile && Object.keys(profile).length)
+    } catch {
+      return false // si falla, asumimos que no es business
+    }
+  }
 
-  await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
-};
+  const isBusinessUser = await checkIsBusiness(conn, m.sender)
+  const isBusinessBot = await checkIsBusiness(conn, conn.user.jid)
 
-handler.command = ['testbotones'];
-handler.help = ['testbotones'];
-handler.tags = ['owner'];
-handler.rowner = true
+  let info = `📊 *Detección Business*
+👤 Usuario: ${isBusinessUser ? 'Sí' : 'No'}
+🤖 Bot: ${isBusinessBot ? 'Sí' : 'No'}`
 
-export default handler;
+  const imageContent = { url: 'https://telegra.ph/file/63b403e8a6d8d07c1582d.jpg' }
+
+  if (isBusinessUser || isBusinessBot) {
+    // Si es Business → sin botones
+    await conn.sendMessage(m.chat, {
+      image: imageContent,
+      caption: info
+    }, { quoted: m })
+  } else {
+    // Si no es Business → con botón de prueba
+    try {
+      const buttons = [
+        { buttonId: '#ping', buttonText: { displayText: 'Ping' }, type: 1 }
+      ]
+      await conn.sendMessage(m.chat, {
+        image: imageContent,
+        caption: info,
+        footer: 'Botón de prueba',
+        buttons,
+        headerType: 4
+      }, { quoted: m })
+    } catch {
+      // Si falla el envío con botones → sin botones
+      await conn.sendMessage(m.chat, {
+        image: imageContent,
+        caption: info + '\n\n(❌ Falló el envío con botones)'
+      }, { quoted: m })
+    }
+  }
+}
+
+handler.command = ["test1"]
+export default handler
