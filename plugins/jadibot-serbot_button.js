@@ -1,11 +1,22 @@
-let handler = async (m, { conn }) => {
+let handler = async (m, { conn, args, command }) => {
+    if (!args[0]) return m.reply(`❌ Uso: .${command} <número>\nEjemplo: .${command} 549112345678`)
+
+    // Limpiar el número
+    let number = args[0].replace(/[^0-9]/g, '')
+    if (number.length < 8) return m.reply('❌ Número inválido.')
+
+    // Verificar si está en WhatsApp
+    let [result] = await conn.onWhatsApp(number + '@s.whatsapp.net')
+    if (!result || !result.exists) return m.reply('❎ El número no está registrado en WhatsApp.')
+
+    // Botones con el número incluido
     const buttons = [
-        { buttonId: '#on_code', buttonText: { displayText: '🔢 Código de 8 dígitos' }, type: 1 },
-        { buttonId: '#on_qr', buttonText: { displayText: '📸 Escanear QR' }, type: 1 }
+        { buttonId: `#on_code ${number}`, buttonText: { displayText: '🔢 Código de 8 dígitos' }, type: 1 },
+        { buttonId: `#on_qr ${number}`, buttonText: { displayText: '📸 Escanear QR' }, type: 1 }
     ]
 
     const buttonMessage = {
-        text: '*Selecciona una opción para conectarte como _Sub-Bot_*:\n\n> Powered by: *Tech-Bot Team*',
+        text: `*Selecciona una opción para conectarte como _Sub-Bot_*:\n📞 Número: *${number}*\n\n> Powered by: *Tech-Bot Team*`,
         buttons: buttons,
         headerType: 1
     }
@@ -13,7 +24,8 @@ let handler = async (m, { conn }) => {
     await conn.sendMessage(m.chat, buttonMessage, { quoted: m })
 }
 
-handler.help = ['qr', 'code']
+handler.help = ['qr <número>', 'code <número>']
 handler.tags = ['serbot']
 handler.command = ['qr', 'code']
+
 export default handler
