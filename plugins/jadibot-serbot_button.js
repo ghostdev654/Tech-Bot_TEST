@@ -1,4 +1,17 @@
 let handler = async (m, { conn, args, command }) => {
+    // Verificar si el bot es Business
+    let botJid = conn.user.id.split(':')[0] + '@s.whatsapp.net'
+    let botProfile
+    try {
+        botProfile = await conn.getBusinessProfile(botJid)
+    } catch {
+        botProfile = null
+    }
+    if (botProfile) {
+        return m.reply('❌ *El Numero del bot está en una cuenta de empresa.\n\n> Escribe #sercode / #serqr para conectarte.*')
+    }
+
+    // Validar argumento
     if (!args[0]) return m.reply(`❌ Uso: .${command} <número>\nEjemplo: .${command} 549112345678`)
 
     // Limpiar el número
