@@ -45,7 +45,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     return conn.reply(m.chat, `⚠️ No hay comandos en la categoría *${tags[category]}*`, m)
   }
 
-  let text = `*┌➤* ${tags[category]}\n\n`
+  let text = `*┌➤* ${tags[category]}\n*│*`
 
   for (let cmd of commandsInCategory) {
     for (let h of cmd.help) {
