@@ -52,7 +52,7 @@ handler.before = async (m, { conn }) => {
     )
 
     if (!ownerNumbers.includes(m.sender)) {
-      await m.reply('🚫 No respondo mensajes privados. Contacta en el grupo del bot.\n\n> Serás bloqueado.')
+      // await m.reply('🚫 No respondo mensajes privados. Contacta en el grupo del bot.\n\n> Serás bloqueado.')
       await conn.updateBlockStatus(m.sender, 'block')
       return true
     }
