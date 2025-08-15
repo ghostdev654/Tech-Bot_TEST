@@ -71,7 +71,7 @@ return m.reply(`No se han encontrado espacios para *Sub-Bots* disponibles.`)
 let who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
 let id
 let phoneNumber
-if (command === 'code') {
+if (command === 'sercode') {
   if (!args[0]) return m.reply('*_Ejemplo:_*' + usedPrefix + command + ' 57123456789')
   phoneNumber = args[0].replace(/[^0-9]/g, '')
   if (phoneNumber.length < 8) return m.reply('❌ *Número de teléfono inválido.*')
@@ -105,7 +105,7 @@ export default handler
 export async function yukiJadiBot(options) {
 let { pathYukiJadiBot, m, conn, args, usedPrefix, command, phoneNumber } = options
 if (command === 'code') {
-command = 'qr'; 
+command = 'serqr'; 
 args.unshift('code')}
 const mcode = args[0] && /(--code|code)/.test(args[0].trim()) ? true : args[1] && /(--code|code)/.test(args[1].trim()) ? true : false
 let txtCode, codeBot, txtQR
