@@ -3,7 +3,7 @@ import path from 'path'
 
 const configPath = path.join('./json', 'antiprivado.json')
 
-// Función para leer configuración
+// Leer configuración
 function readConfig() {
   try {
     if (!fs.existsSync(configPath)) {
@@ -15,12 +15,12 @@ function readConfig() {
   }
 }
 
-// Función para guardar configuración
+// Guardar configuración
 function writeConfig(data) {
   fs.writeFileSync(configPath, JSON.stringify(data, null, 2))
 }
 
-// === ANTIPRIVADO ON/OFF PARA OWNER ===
+// === ON/OFF SOLO OWNER ===
 const handler = async (m, { command, args }) => {
   let config = readConfig()
   const type = (args[0] || '').toLowerCase()
@@ -47,9 +47,12 @@ handler.before = async (m, { conn }) => {
 
   let config = readConfig()
   if (config.antiprivado) {
-    const ownerNumbers = global.owner.map(o => o.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
+    const ownerNumbers = global.owner.map(o => 
+      (Array.isArray(o) ? o[0] : o).replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+    )
+
     if (!ownerNumbers.includes(m.sender)) {
-      await m.reply('🚫 No respondo mensajes privados. Contacta en el grupo del bot.\n\n> Seras bloqueado.')
+      await m.reply('🚫 No respondo mensajes privados. Contacta en el grupo del bot.\n\n> Serás bloqueado.')
       await conn.updateBlockStatus(m.sender, 'block')
       return true
     }
