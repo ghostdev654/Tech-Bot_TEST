@@ -41,6 +41,16 @@ const defaultMenu = {
 
 const handler = async (m, { conn, usedPrefix: _p }) => {
   try {
+    // Verificar si el bot es Business
+    let botJid = conn.user?.jid || conn.user?.id
+    let botProfile
+    try {
+      botProfile = await conn.getBusinessProfile(botJid)
+    } catch {
+      botProfile = null
+    }
+    const isBusiness = !!botProfile
+
     const { exp, limit, level } = global.db.data.users[m.sender]
     const { min, xp, max } = xpRange(level, global.multiplier)
     const name = await conn.getName(m.sender)
@@ -130,11 +140,26 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
       ? { image: { url: bannerFinal } }
       : { image: fs.readFileSync(bannerFinal) }
 
-    await conn.sendMessage(m.chat, {
-      ...imageContent,
-      caption: text.trim(),
-      mentionedJid: conn.parseMention(text)
-    }, { quoted: m })
+    if (!isBusiness) {
+      // Si NO es Business, añadimos botón
+      const buttons = [
+        { buttonId: '#speed', buttonText: { displayText: '⚡ Runtime' }, type: 1 }
+      ]
+      await conn.sendMessage(m.chat, {
+        ...imageContent,
+        caption: text.trim(),
+        buttons,
+        headerType: 1,
+        mentionedJid: conn.parseMention(text)
+      }, { quoted: m })
+    } else {
+      // Si es Business, solo texto
+      await conn.sendMessage(m.chat, {
+        ...imageContent,
+        caption: text.trim(),
+        mentionedJid: conn.parseMention(text)
+      }, { quoted: m })
+    }
 
   } catch (e) {
     console.error('❌ Error en el menú:', e)
