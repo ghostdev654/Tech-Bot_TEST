@@ -3,16 +3,16 @@ let handler = async (m, { conn, args, command }) => {
 
     // Limpiar el número
     let number = args[0].replace(/[^0-9]/g, '')
-    if (number.length < 8) return m.reply('❌ Número inválido.')
+    if (number.length < 8) return m.reply('❌ *Número inválido.*')
 
     // Verificar si está en WhatsApp
     let [result] = await conn.onWhatsApp(number + '@s.whatsapp.net')
-    if (!result || !result.exists) return m.reply('❎ El número no está registrado en WhatsApp.')
+    if (!result || !result.exists) return m.reply('❌ *El número no está registrado en WhatsApp.*')
 
     // Botones con el número incluido
     const buttons = [
-        { buttonId: `#on_code ${number}`, buttonText: { displayText: '🔢 Código de 8 dígitos' }, type: 1 },
-        { buttonId: `#on_qr ${number}`, buttonText: { displayText: '📸 Escanear QR' }, type: 1 }
+        { buttonId: `#sercode ${number}`, buttonText: { displayText: '🔢 Código de 8 dígitos' }, type: 1 },
+        { buttonId: `#serqr ${number}`, buttonText: { displayText: '📸 Escanear QR' }, type: 1 }
     ]
 
     const buttonMessage = {
