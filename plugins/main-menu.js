@@ -125,7 +125,7 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
       : { image: fs.readFileSync(bannerFinal) }
 
     if (!isBusiness) {
-      // Si NO es Business, añade botón de Categorías en tipo LISTA y Runtime aparte
+      // Si NO es Business, añade botón de Categorías en tipo LISTA
       const sections = [
         {
           title: 'Categorías',
@@ -141,9 +141,6 @@ const handler = async (m, { conn, usedPrefix: _p }) => {
         footer: '',
         buttonText: '💡 Elegir Categoría',
         sections,
-        buttons: [
-          { buttonId: '#speed', buttonText: { displayText: '⚡ Runtime' }, type: 1 }
-        ],
         headerType: 1,
         mentionedJid: conn.parseMention(textSaludo)
       }
