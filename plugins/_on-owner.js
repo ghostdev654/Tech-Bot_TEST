@@ -3,6 +3,10 @@ import path from 'path'
 
 const configPath = path.join('./json', 'antiprivado.json')
 
+// Número específico del bot que podrá aplicar el antiprivado
+// ⚠ IMPORTANTE: Tiene que estar en formato jid con @s.whatsapp.net
+const botNumberAllowed = '5491164239825@s.whatsapp.net' // <-- Cambia este por el número real del bot
+
 // Leer configuración
 function readConfig() {
   try {
@@ -45,14 +49,16 @@ handler.help = ['on2 antiprivado', 'off2 antiprivado']
 handler.before = async (m, { conn }) => {
   if (m.isGroup) return
 
+  // Solo ejecuta si el bot es el número permitido
+  if (conn.user?.jid !== botNumberAllowed) return
+
   let config = readConfig()
   if (config.antiprivado) {
-    const ownerNumbers = global.owner.map(o => 
+    const ownerNumbers = global.owner.map(o =>
       (Array.isArray(o) ? o[0] : o).replace(/[^0-9]/g, '') + '@s.whatsapp.net'
     )
 
     if (!ownerNumbers.includes(m.sender)) {
-      // await m.reply('🚫 No respondo mensajes privados. Contacta en el grupo del bot.\n\n> Serás bloqueado.')
       await conn.updateBlockStatus(m.sender, 'block')
       return true
     }
