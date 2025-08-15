@@ -8,7 +8,7 @@ let handler = async (m, { conn, args, command }) => {
         botProfile = null
     }
     if (botProfile) {
-        return m.reply('❌ *El Numero del bot está en una cuenta de empresa.\n\n> Escribe #sercode / #serqr para conectarte.*')
+        return m.reply('❌ *El Numero del bot está en una cuenta de empresa.*\n\n> Escribe *#sercode* / *#serqr* para conectarte.')
     }
 
     // Validar argumento
