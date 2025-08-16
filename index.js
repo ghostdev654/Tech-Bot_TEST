@@ -1,4 +1,3 @@
-require("checkPrem.js")
 console.clear()
 console.log('🟢 CARGANDO...')
 
