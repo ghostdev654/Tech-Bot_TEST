@@ -23,7 +23,7 @@ displayName: name,
 contacts: [{ vcard }],
 },
 }, { quoted: m })
-await conn.sendMessage(m.chat, `*_Owner_* = ${number}`) // agregar número sin @
+await conn.sendMessage(m.chat, { text: `*_Owner_* = ${number}` }, { quoted: m })
 }
 
 handler.help = ['creador']
