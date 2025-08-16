@@ -1,5 +1,6 @@
 import { watchFile, unwatchFile } from 'fs'
 import chalk from 'chalk'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 global.owner = [
@@ -9,14 +10,21 @@ global.owner = [
   ['114847912059070', 'Yo Soy Yo', true],
   ['267950527389763', 'Juan Host', true],
   ['573134811343', 'Juan Host', true]
-  
-  
-  
-  
 ]
 
 global.mods = []
+
+// 📌 Ruta de tu archivo premium.json
+const premPath = "./json/premium.json"
+
+// 📌 Al iniciar el bot: leer y guardar en global.prems
 global.prems = []
+if (fs.existsSync(premPath)) {
+  global.prems = JSON.parse(fs.readFileSync(premPath, "utf8"))
+} else {
+  // Si no existe, lo creamos vacío
+  fs.writeFileSync(premPath, JSON.stringify([], null, 2))
+}
 
 global.namebot = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
 global.packname = '𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 ⱽ¹'
