@@ -27,7 +27,7 @@ END:VCARD
 
   // Enviar texto adicional
   await conn.sendMessage(m.chat, { 
-    text: `*Contacto del Creador*\n\nSi tienes preguntas, dudas o sugerencias sobre el funcionamiento de *Tech-Bot V1*, puedes contactar a mi creador a continuación:\n\n📞 *Número:* ${number}\n👤 *Nombre:* ${name}\n📩 *Correo:* ${email}\n\n> “Los bots no descansan, pero yo sí, así que no me andes mandando mensaje a las 3am porque no te voy a contestar…”\n- ${name}` 
+    text: `*Contacto del Creador*\n\nSi tienes preguntas, dudas o sugerencias sobre el funcionamiento de *Tech-Bot V1*, puedes contactar a mi creador a continuación:\n\n📞 *Número:* ${number}\n👤 *Nombre:* ${name}\n📩 *Correo:* ${email}\n\n> “Los bots no descansan, pero yo sí, así que no me andes mandando mensaje a las 3am porque no te voy a contestar…”\n– ${name}` 
   }, { quoted: m })
 }
 
