@@ -1,42 +1,55 @@
 let handler = async (m, { conn, participants }) => {
   if (!m.isGroup) throw '*⚠️ Este comando solo se puede usar en grupos.*'
 
-  // Mensaje de confirmación
-  let confirmMsg = await conn.sendMessage(m.chat, { text: `*⚠️ Confirmación requerida*\n\n¿Seguro que quieres expulsar a TODOS del grupo?\n\nReacciona con ✅ para confirmar o ❌ para cancelar.` }, { quoted: m })
+  // Guardar quién ejecutó el comando
+  let executor = m.sender
 
-  // Esperar reacción
-  conn.ev.on('messages.reaction', async (reaction) => {
+  // Enviar confirmación
+  await conn.sendMessage(m.chat, { text: `*⚠️ Confirmación requerida*\n\n¿Seguro que quieres expulsar a TODOS del grupo?\n\nResponde con *si* o *no* (solo ${executor.split('@')[0]} puede responder).` }, { quoted: m })
+
+  // Crear listener temporal
+  let confirmation = async (resp) => {
     try {
-      if (!reaction.key.fromMe && reaction.key.id === confirmMsg.key.id && reaction.key.remoteJid === m.chat) {
-        let emoji = reaction.text
-        let userReact = reaction.key.participant || reaction.participant
+      if (!resp.messages) return
+      let ms = resp.messages[0]
+      if (!ms.message?.conversation) return
 
-        // Solo el dueño que ejecutó el comando puede confirmar
-        if (userReact !== m.sender) return
+      let txt = ms.message.conversation.toLowerCase().trim()
+      let sender = ms.key.participant || ms.key.remoteJid
 
-        if (emoji === '✅') {
-          await conn.sendMessage(m.chat, { text: '*✅ Purga confirmada, eliminando usuarios...*' })
+      // Solo aceptar respuesta del mismo owner que ejecutó
+      if (sender !== executor || ms.key.remoteJid !== m.chat) return
 
-          let toKick = participants
-            .map(u => u.id)
-            .filter(id => id !== conn.user.jid && id !== m.sender)
+      if (txt === 'si') {
+        await conn.sendMessage(m.chat, { text: '*✅ Purga confirmada, eliminando usuarios...*' })
+        let toKick = participants
+          .map(u => u.id)
+          .filter(id => id !== conn.user.jid && id !== executor)
 
-          for (let i = 0; i < toKick.length; i += 5) {
-            let batch = toKick.slice(i, i + 5)
+        for (let i = 0; i < toKick.length; i += 5) {
+          let batch = toKick.slice(i, i + 5)
+          try {
             await conn.groupParticipantsUpdate(m.chat, batch, 'remove')
-            await new Promise(res => setTimeout(res, 1000)) // delay 1s
+          } catch (e) {
+            console.error('Error expulsando:', e)
           }
-
-          await conn.sendMessage(m.chat, { text: '*🚮 Purga finalizada.*' })
-
-        } else if (emoji === '❌') {
-          await conn.sendMessage(m.chat, { text: '*❌ Purga cancelada.*' })
+          await new Promise(res => setTimeout(res, 1000)) // delay 1s
         }
+
+        await conn.sendMessage(m.chat, { text: '*🚮 Purga finalizada.*' })
+        conn.ev.off('messages.upsert', confirmation) // apagar listener
+      }
+
+      if (txt === 'no') {
+        await conn.sendMessage(m.chat, { text: '*❌ Purga cancelada.*' })
+        conn.ev.off('messages.upsert', confirmation) // apagar listener
       }
     } catch (e) {
-      console.error('Error en purga:', e)
+      console.error('Error en confirmación purga:', e)
     }
-  })
+  }
+
+  conn.ev.on('messages.upsert', confirmation)
 }
 
 handler.help = ['purga']
