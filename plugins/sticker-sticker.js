@@ -75,7 +75,7 @@ const handler = async (m, { conn }) => {
   if (!/image|video/.test(mime)) {
     return conn.sendMessage(
       m.chat,
-      { text: `✿ Responde a una *imagen o video* para convertirlo en sticker\n`, ...global.rcanal },
+      { text: `✿ Responde a una *imagen o video* para convertirlo en sticker\n`},
       { quoted: m }
     )
   }
@@ -93,14 +93,14 @@ const handler = async (m, { conn }) => {
 
     if (!Buffer.isBuffer(stiker)) throw new Error('No se pudo generar el sticker')
 
-    await conn.sendMessage(m.chat, { sticker: stiker, ...global.rcanal }, { quoted: m })
+    await conn.sendMessage(m.chat, { sticker: stiker}, { quoted: m })
     await m.react('✅')
   } catch (e) {
     console.error(e)
     await m.react('❌')
     await conn.sendMessage(
       m.chat,
-      { text: '╭─❀ *Error de Conversión* ❀─╮\n✘ No se pudo generar el sticker\n╰───────────────────────────╯', ...global.rcanal },
+      { text: '╭─❀ *Error de Conversión* ❀─╮\n✘ No se pudo generar el sticker\n╰───────────────────────────╯'},
       { quoted: m }
     )
   }
