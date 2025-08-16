@@ -1,11 +1,11 @@
 let handler = async (m, { conn }) => {
-  const name = 'GhostDev.js'
-  const number = '5491151545427' // sin @
-  const email = 'clanxgamer@yahoo.com'
-  const org = 'Creador de TECH-BOT'
-  const note = 'Developer de bots'
+const name = 'GhostDev.js'
+const number = '5491151545427' // sin @
+const email = 'clanxgamer@yahoo.com'
+const org = 'Creador de TECH-BOT'
+const note = 'Developer de bots'
 
-  const vcard = `
+const vcard = `
 BEGIN:VCARD
 VERSION:3.0
 N:${name}
@@ -17,15 +17,14 @@ NOTE:${note}
 END:VCARD
 `.trim()
 
-  await conn.sendMessage(m.chat, {
-    contacts: {
-      displayName: name,
-      contacts: [{ vcard }],
-    },
-  }, { quoted: m })
+await conn.sendMessage(m.chat, {
+contacts: {
+displayName: name,
+contacts: [{ vcard }],
+},
+}, { quoted: m })
+await conn.sendMessage(m.chat, `*_Owner_* = ${number}`) // agregar número sin @
 }
-await conn.sendMessage(m.chat, `*_Owner_* = 5491151545427`)
-    
 
 handler.help = ['creador']
 handler.tags = ['info']
