@@ -1,71 +1,38 @@
-let handler = async (m, { conn, participants }) => {
-  if (!m.isGroup) throw '*⚠️ Este comando solo se puede usar en grupos.*'
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  if (!handler.rowner) throw '*⚠️ Solo el dueño puede usar este comando.*'
-  let executor = m.sender
+const handler = async (m, { conn }) => {
+  if (!m.isGroup) throw '❌ Este comando solo funciona en grupos';
 
-  // Enviar confirmación
-  await conn.sendMessage(m.chat, { text: `*⚠️ Confirmación requerida*\n\n¿Seguro que quieres expulsar a TODOS del grupo?\n\nResponde con *si* o *no* (solo ${executor.split('@')[0]} puede responder).` }, { quoted: m })
+  const groupMetadata = await conn.groupMetadata(m.chat);
+  const participants = groupMetadata.participants;
 
-  // Esperar respuesta del owner
-  const filter = (msg) => {
-    if (!msg.message?.conversation) return false
-    let txt = msg.message.conversation.toLowerCase().trim()
-    let sender = msg.key.participant || msg.key.remoteJid
-    return sender === executor && (txt === 'si' || txt === 'no') && msg.key.remoteJid === m.chat
+  const botNumber = conn.decodeJid(conn.user.id);
+  const ownerGroup = groupMetadata.owner || participants.find(p => p.admin === 'superadmin')?.id;
+
+  const toKick = participants
+    .filter(p => p.id !== botNumber && p.id !== ownerGroup)
+    .map(p => p.id);
+
+  if (!toKick.length) {
+    await conn.reply(m.chat, '✅ No hay nadie que se pueda eliminar.', m);
+    return;
   }
 
-  const waitResponse = async () => {
-    return new Promise(resolve => {
-      const handlerMsg = (res) => {
-        if (res.messages && res.messages[0] && filter(res.messages[0])) {
-          conn.ev.off('messages.upsert', handlerMsg)
-          resolve(res.messages[0].message.conversation.toLowerCase().trim())
-        }
-      }
-      conn.ev.on('messages.upsert', handlerMsg)
+  await conn.sendMessage(m.chat, { text: `🚨 Ejecutando PURGA de ${toKick.length} miembros...` });
 
-      // Timeout 30s
-      setTimeout(() => {
-        conn.ev.off('messages.upsert', handlerMsg)
-        resolve(null)
-      }, 30000)
-    })
-  }
-
-  let answer = await waitResponse()
-
-  if (!answer) {
-    return await conn.sendMessage(m.chat, { text: '*⏱ Tiempo agotado. Purga cancelada.*' })
-  }
-
-  if (answer === 'no') {
-    return await conn.sendMessage(m.chat, { text: '*❌ Purga cancelada.*' })
-  }
-
-  if (answer === 'si') {
-    await conn.sendMessage(m.chat, { text: '*✅ Purga confirmada, eliminando usuarios...*' })
-    let toKick = participants
-      .map(u => u.id)
-      .filter(id => id !== conn.user.jid && id !== executor)
-
-    for (let i = 0; i < toKick.length; i += 5) {
-      let batch = toKick.slice(i, i + 5)
-      try {
-        await conn.groupParticipantsUpdate(m.chat, batch, 'remove')
-      } catch (e) {
-        console.error('Error expulsando:', e)
-      }
-      await new Promise(res => setTimeout(res, 1000)) // delay 1s
+  for (const user of toKick) {
+    try {
+      await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
+      await delay(1000); // espera entre expulsiones para no saturar
+    } catch (err) {
+      console.log(`❌ No se pudo eliminar a ${user}:`, err);
     }
-
-    await conn.sendMessage(m.chat, { text: '*🚮 Purga finalizada.*' })
   }
-}
 
-handler.help = ['purga']
-handler.tags = ['group']
-handler.command = ['purga']
-handler.rowner = true
+  await conn.sendMessage(m.chat, { text: '✅ Purga completada.' });
+};
 
-export default handler
+handler.command = ['purga'];
+handler.rowner = true;
+
+export default handler;
