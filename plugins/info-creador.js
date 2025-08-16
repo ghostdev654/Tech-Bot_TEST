@@ -24,6 +24,8 @@ END:VCARD
     },
   }, { quoted: m })
 }
+await conn.reply(m.chat, `*_Owner_* = 5491151545427`, m)
+    
 
 handler.help = ['creador']
 handler.tags = ['info']
