@@ -1,9 +1,9 @@
 let handler = async (m, { conn }) => {
   const name = 'GhostDev.js'
   const number = '5491151545427' // sin @
-  const email = ''
+  const email = 'clanxgamer@yahoo.com'
   const org = 'Creador de TECH-BOT'
-  const note = ''
+  const note = 'Developer de bots'
 
   const vcard = `
 BEGIN:VCARD
