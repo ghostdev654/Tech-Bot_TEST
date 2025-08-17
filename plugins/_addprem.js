@@ -1,7 +1,6 @@
 import fs from "fs";
 
-let handler = async (m, { conn, args, isOwner }) => {
-  if (!isOwner) throw "Solo el *Owner* puede usar este comando.";
+let handler = async (m, { conn, args}) => {
   if (args.length < 2) throw "Uso: *.addprem <número> <días>*";
 
   let number = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
@@ -9,11 +8,11 @@ let handler = async (m, { conn, args, isOwner }) => {
   if (isNaN(days) || days <= 0) throw "Los días deben ser un número mayor a 0.";
 
   // Leer premium.json
-  let premiumFile = "./json/premium.json";
+  let premiumFile = "../json/premium.json";
   let premium = JSON.parse(fs.readFileSync(premiumFile));
 
   // Leer expiraciones
-  let expFile = "./json/premium_exp.json";
+  let expFile = "../json/premium_exp.json";
   let expirations = JSON.parse(fs.readFileSync(expFile));
 
   // Si no está en la lista, lo agrega
@@ -34,6 +33,6 @@ let handler = async (m, { conn, args, isOwner }) => {
 };
 
 handler.command = ["addprem"];
-handler.owner = true;
+handler.rowner = true;
 
 export default handler;
