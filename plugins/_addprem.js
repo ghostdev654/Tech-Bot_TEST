@@ -1,40 +1,39 @@
 import fs from "fs";
-import path from "path";
 
-const premiumFile = path.join("./json/premium.json");
-const premiumExpFile = path.join("./json/premium_exp.json");
+let handler = async (m, { conn, args, isOwner }) => {
+  if (!isOwner) throw "Solo el *Owner* puede usar este comando.";
+  if (args.length < 2) throw "Uso: *.addprem <número> <días>*";
 
-let handler = async (m, { text }) => {
-  if (!text) throw "⚠️ Usa: *.addprem <número> <días>*";
+  let number = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+  let days = parseInt(args[1]);
+  if (isNaN(days) || days <= 0) throw "Los días deben ser un número mayor a 0.";
 
-  let [num, dias] = text.split(" ");
-  if (!num || !dias) throw "⚠️ Usa: *.addprem <número> <días>*";
+  // Leer premium.json
+  let premiumFile = "./json/premium.json";
+  let premium = JSON.parse(fs.readFileSync(premiumFile));
 
-  dias = parseInt(dias);
-  if (isNaN(dias) || dias <= 0) throw "❌ Los días deben ser un número válido";
+  // Leer expiraciones
+  let expFile = "./json/premium_exp.json";
+  let expirations = JSON.parse(fs.readFileSync(expFile));
 
-  // Archivos
-  let prems = fs.existsSync(premiumFile) ? JSON.parse(fs.readFileSync(premiumFile)) : [];
-  let expirations = fs.existsSync(premiumExpFile) ? JSON.parse(fs.readFileSync(premiumExpFile)) : {};
+  // Si no está en la lista, lo agrega
+  if (!premium.includes(number)) {
+    premium.push(number);
+    fs.writeFileSync(premiumFile, JSON.stringify(premium, null, 2));
+  }
 
-  // Calcular expiración
-  const expDate = Date.now() + dias * 24 * 60 * 60 * 1000;
+  // Guardar expiración
+  let expireAt = Date.now() + days * 24 * 60 * 60 * 1000;
+  expirations[number] = expireAt;
+  fs.writeFileSync(expFile, JSON.stringify(expirations, null, 2));
 
-  // Agregar si no existe
-  if (!prems.includes(num)) prems.push(num);
-  expirations[num] = expDate;
+  // Actualizar global.prems
+  global.prems = premium;
 
-  // Guardar
-  fs.writeFileSync(premiumFile, JSON.stringify(prems, null, 2));
-  fs.writeFileSync(premiumExpFile, JSON.stringify(expirations, null, 2));
-
-  // Recargar global.prems
-  global.prems = prems;
-
-  m.reply(`✅ Número *${num}* ahora es premium por *${dias} días*`);
+  m.reply(`✅ ${number} ahora es *Premium* por ${days} días.`);
 };
 
-handler.command = ["+prem"];
-handler.tags = ["owner"]
-handler.rowner = true; // Solo owner
+handler.command = ["addprem"];
+handler.owner = true;
+
 export default handler;
