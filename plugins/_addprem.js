@@ -1,38 +1,54 @@
 import fs from "fs";
+import path from "path";
 
-let handler = async (m, { conn, args}) => {
-  if (args.length < 2) throw "Uso: *.addprem <número> <días>*";
+const premiumFile = path.resolve("./json/premium.json");
+const expFile = path.resolve("./json/premium_exp.json");
 
-  let number = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
-  let days = parseInt(args[1]);
-  if (isNaN(days) || days <= 0) throw "Los días deben ser un número mayor a 0.";
+// Función segura para leer JSON
+function readJSON(file) {
+  try {
+    if (!fs.existsSync(file)) return {};
+    let data = fs.readFileSync(file);
+    return JSON.parse(data.toString() || "{}");
+  } catch {
+    return {}; // fallback si hay error
+  }
+}
 
-  // Leer premium.json
-  let premiumFile = "../json/premium.json";
-  let premium = JSON.parse(fs.readFileSync(premiumFile));
+// Función segura para guardar JSON
+function saveJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
 
-  // Leer expiraciones
-  let expFile = "../json/premium_exp.json";
-  let expirations = JSON.parse(fs.readFileSync(expFile));
+let handler = async (m, { conn, args }) => {
+  let user = args[0]?.replace(/[@+]/g, "") + "@s.whatsapp.net";
+  let days = parseInt(args[1]); // número de días
+  let time = days * 24 * 60 * 60 * 1000; // días → ms
 
-  // Si no está en la lista, lo agrega
-  if (!premium.includes(number)) {
-    premium.push(number);
-    fs.writeFileSync(premiumFile, JSON.stringify(premium, null, 2));
+  if (!user || isNaN(days)) {
+    return m.reply("⚠️ Uso: .addprem <número> <días>");
   }
 
-  // Guardar expiración
-  let expireAt = Date.now() + days * 24 * 60 * 60 * 1000;
-  expirations[number] = expireAt;
-  fs.writeFileSync(expFile, JSON.stringify(expirations, null, 2));
+  let premium = readJSON(premiumFile);
+  let premiumExp = readJSON(expFile);
 
-  // Actualizar global.prems
-  global.prems = premium;
+  // Guardar usuario en la lista premium
+  if (!premium.users) premium.users = [];
+  if (!premium.users.includes(user)) premium.users.push(user);
 
-  m.reply(`✅ ${number} ahora es *Premium* por ${days} días.`);
+  // Guardar fecha de expiración
+  let expireAt = Date.now() + time;
+  premiumExp[user] = expireAt;
+
+  saveJSON(premiumFile, premium);
+  saveJSON(expFile, premiumExp);
+
+  m.reply(`✅ ${user} ahora es premium por ${days} día(s)`);
 };
 
-handler.command = ["addprem"];
+handler.help = ["+prem"];
+handler.tags = ["owner"];
+handler.command = ["+prem"];
 handler.rowner = true;
 
 export default handler;
