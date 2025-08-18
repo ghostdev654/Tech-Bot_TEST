@@ -1,49 +1,54 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs'
+import path from 'path'
 
-const restrPath = path.resolve("./json/restringidos.json");
+const restrictedPath = path.join('./json', 'restringidos.json')
 
-// Creamos archivo si no existe
-if (!fs.existsSync(restrPath)) {
-  fs.writeFileSync(restrPath, JSON.stringify([]));
+// === UTILS ===
+function readRestricted() {
+  try {
+    if (!fs.existsSync(restrictedPath)) {
+      fs.writeFileSync(restrictedPath, JSON.stringify({ commands: [] }, null, 2))
+    }
+    return JSON.parse(fs.readFileSync(restrictedPath))
+  } catch {
+    return { commands: [] }
+  }
 }
 
-// 🔹 Middleware: verificamos restricción ANTES de ejecutar
-export async function before(m, { command, isOwner }) {
-  let restringidos = JSON.parse(fs.readFileSync(restrPath));
-
-  if (restringidos.includes(command) && !isOwner) {
-    m.reply(`🚫 El comando *${command}* está bloqueado por el Owner.`);
-    return true; // corta la ejecución del comando
-  }
-  return false;
+function writeRestricted(data) {
+  fs.writeFileSync(restrictedPath, JSON.stringify(data, null, 2))
 }
 
-let handler = async (m, { text, isOwner }) => {
-  if (!isOwner) return m.reply("⚠️ Solo el Owner puede usar este comando.");
+// === COMANDO #re <nombre_comando> ===
+const handler = async (m, { args }) => {
+  if (!args[0]) return m.reply('✳️ Usa: #re <comando>')
 
-  if (!text) {
-    let lista = JSON.parse(fs.readFileSync(restrPath));
-    if (!lista.length) return m.reply("✅ No hay comandos restringidos.");
-    return m.reply("🚫 Comandos restringidos:\n\n" + lista.map(c => `• ${c}`).join("\n"));
-  }
+  const cmd = args[0].toLowerCase()
+  let restricted = readRestricted()
 
-  let restringidos = JSON.parse(fs.readFileSync(restrPath));
-  let cmd = text.toLowerCase();
-
-  if (restringidos.includes(cmd)) {
-    restringidos = restringidos.filter(c => c !== cmd);
-    m.reply(`✅ El comando *${cmd}* fue desbloqueado.`);
+  if (restricted.commands.includes(cmd)) {
+    restricted.commands = restricted.commands.filter(c => c !== cmd)
+    writeRestricted(restricted)
+    return m.reply(`✅ El comando *${cmd}* ya no está restringido.`)
   } else {
-    restringidos.push(cmd);
-    m.reply(`🚫 El comando *${cmd}* fue bloqueado para todos.`);
+    restricted.commands.push(cmd)
+    writeRestricted(restricted)
+    return m.reply(`🚫 El comando *${cmd}* fue restringido.`)
   }
+}
 
-  fs.writeFileSync(restrPath, JSON.stringify(restringidos, null, 2));
-};
+handler.command = ["re"]
+handler.rowner = true
+handler.tags = ['owner']
+handler.help = ['re <comando>']
 
-handler.help = ["re <comando>"];
-handler.tags = ["owner"];
-handler.command = /^re$/i;
+// === MIDDLEWARE RESTRICT ===
+handler.before = async (m, { command }) => {
+  let restricted = readRestricted()
 
-export default handler;
+  if (restricted.commands.includes(command)) {
+    return !0 // corta ejecución → nadie puede usarlo
+  }
+}
+
+export default handler
