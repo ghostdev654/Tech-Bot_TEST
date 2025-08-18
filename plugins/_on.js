@@ -1,91 +1,99 @@
-//--> Hecho por Ado-rgb (github.com/Ado-rgb)
-// •|• No quites créditos..
-import fetch from 'node-fetch'
+import fs from 'fs'
+import path from 'path'
 
-let linkRegex = /chat\.whatsapp\.com\/[0-9A-Za-z]{20,24}/i
-let linkRegex1 = /whatsapp\.com\/channel\/[0-9A-Za-z]{20,24}/i
+const settingsPath = path.resolve('./json/settings.json')
 const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
 
-async function isAdminOrOwner(m, conn) {
+// === UTILS JSON ===
+function readSettings() {
   try {
-    const groupMetadata = await conn.groupMetadata(m.chat)
-    const participant = groupMetadata.participants.find(p => p.id === m.sender)
-    return participant?.admin || m.fromMe
+    if (!fs.existsSync(settingsPath)) {
+      fs.writeFileSync(settingsPath, JSON.stringify({}, null, 2))
+    }
+    return JSON.parse(fs.readFileSync(settingsPath))
   } catch {
-    return false
+    return {}
   }
 }
 
-const handler = async (m, { conn, command, args, isAdmin, isOwner }) => {
-  if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
+function saveSettings(data) {
+  fs.writeFileSync(settingsPath, JSON.stringify(data, null, 2))
+}
 
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  const chat = global.db.data.chats[m.chat]
+function getChatConfig(botNumber, chatId) {
+  let settings = readSettings()
+  if (!settings[botNumber]) settings[botNumber] = {}
+  if (!settings[botNumber][chatId]) {
+    settings[botNumber][chatId] = {
+      antilink: false,
+      welcome: false,
+      antiarabe: false,
+      modoadmin: false
+    }
+    saveSettings(settings)
+  }
+  return settings
+}
+
+// === COMANDO ON/OFF ===
+const handler = async (m, { conn, command, args, isAdmin }) => {
+  if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
+  if (!isAdmin) return m.reply('❌ Solo admins pueden cambiar configuraciones.')
+
   const type = (args[0] || '').toLowerCase()
   const enable = command === 'on'
-
-  if (!['antilink', 'welcome', 'antiarabe', 'modoadmin'].includes(type)) {
-    return m.reply(`✳️ Usa:\n*.on antilink* / *.off antilink*\n*.on welcome* / *.off welcome*\n*.on antiarabe* / *.off antiarabe*\n*.on modoadmin* / *.off modoadmin*`)
+  const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin']
+  if (!validTypes.includes(type)) {
+    return m.reply(
+      `✳️ Usa:\n${validTypes.map(v => `*.on ${v}* / *.off ${v}*`).join('\n')}`
+    )
   }
 
-  if (!isAdmin) return m.reply('❌ Solo admins (no owner) pueden activar o desactivar funciones.')
+  const botNumber = conn.user?.jid || 'bot'
+  let settings = getChatConfig(botNumber, m.chat)
+  settings[botNumber][m.chat][type] = enable
+  saveSettings(settings)
 
-  if (type === 'antilink') {
-    chat.antilink = enable
-    return m.reply(`✅ Antilink ${enable ? 'activado' : 'desactivado'}.`)
-  }
-
-  if (type === 'welcome') {
-    chat.welcome = enable
-    return m.reply(`✅ Welcome ${enable ? 'activado' : 'desactivado'}.`)
-  }
-
-  if (type === 'antiarabe') {
-    chat.antiarabe = enable
-    return m.reply(`✅ Antiarabe ${enable ? 'activado' : 'desactivado'}.`)
-  }
-
-  if (type === 'modoadmin') {
-    chat.modoadmin = enable
-    return m.reply(`✅ Modo Admin ${enable ? 'activado' : 'desactivado'}.`)
-  }
+  return m.reply(`✅ ${type} ${enable ? 'activado' : 'desactivado'}.`)
 }
 
 handler.command = ['on', 'off']
 handler.group = true
 handler.register = true
 handler.tags = ['group']
-handler.help = ['on welcome', 'off welcome', 'on antilink', 'off antilink', 'on modoadmin', 'off modoadmin']
+handler.help = ['on <función>', 'off <función>']
 
+// === MIDDLEWARE ===
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  const chat = global.db.data.chats[m.chat]
+  const botNumber = conn.user?.jid || 'bot'
+  const settings = getChatConfig(botNumber, m.chat)
+  const chat = settings[botNumber][m.chat]
 
-  // MODO ADMIN
+  // 🔒 MODO ADMIN
   if (chat.modoadmin) {
     const groupMetadata = await conn.groupMetadata(m.chat)
     const isUserAdmin = groupMetadata.participants.find(p => p.id === m.sender)?.admin
-    if (!isUserAdmin && !m.fromMe) return // Ignora si no es admin ni owner
+    if (!isUserAdmin && !m.fromMe) return
   }
 
-  // ANTIARABE
+  // 🚫 ANTIARABE
   if (chat.antiarabe && m.messageStubType === 27) {
     const newJid = m.messageStubParameters?.[0]
-    if (!newJid) return
-
-    const number = newJid.split('@')[0].replace(/\D/g, '')
-    const arabicPrefixes = ['212', '20', '971', '965', '966', '974', '973', '962']
-    const isArab = arabicPrefixes.some(prefix => number.startsWith(prefix))
-
-    if (isArab) {
-      await conn.sendMessage(m.chat, { text: `Este pndj ${newJid} será expulsado, no queremos العرب aca, adiosito. [ Anti Arabe Activado ]` })
-      await conn.groupParticipantsUpdate(m.chat, [newJid], 'remove')
-      return true
+    if (newJid) {
+      const number = newJid.split('@')[0]
+      const arabicPrefixes = ['212', '20', '971', '965', '966', '974', '973', '962']
+      if (arabicPrefixes.some(prefix => number.startsWith(prefix))) {
+        await conn.sendMessage(m.chat, { text: `Este usuario ${newJid} será expulsado. [ Anti Arabe Activado ]` })
+        await conn.groupParticipantsUpdate(m.chat, [newJid], 'remove')
+        return true
+      }
     }
   }
 
-  // ANTILINK
+  // 🔗 ANTILINK
+  const linkRegex = /chat\.whatsapp\.com\/[0-9A-Za-z]{20,24}/i
+  const linkRegex1 = /whatsapp\.com\/channel\/[0-9A-Za-z]{20,24}/i
   if (chat.antilink) {
     const groupMetadata = await conn.groupMetadata(m.chat)
     const isUserAdmin = groupMetadata.participants.find(p => p.id === m.sender)?.admin
@@ -93,48 +101,25 @@ handler.before = async (m, { conn }) => {
 
     if (!isUserAdmin && (linkRegex.test(text) || linkRegex1.test(text))) {
       const userTag = `@${m.sender.split('@')[0]}`
-      const delet = m.key.participant
-      const msgID = m.key.id
 
       try {
         const ownGroupLink = `https://chat.whatsapp.com/${await conn.groupInviteCode(m.chat)}`
         if (text.includes(ownGroupLink)) return
-      } catch { }
+      } catch {}
 
-      try {
-        await conn.sendMessage(m.chat, {
-          text: `🚫 Hey ${userTag}, no se permiten links aquí.`,
-          mentions: [m.sender]
-        }, { quoted: m })
-
-        await conn.sendMessage(m.chat, {
-          delete: {
-            remoteJid: m.chat,
-            fromMe: false,
-            id: msgID,
-            participant: delet
-          }
-        })
-
-        await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
-      } catch {
-        await conn.sendMessage(m.chat, {
-          text: `⚠️ No pude eliminar ni expulsar a ${userTag}. Puede que no tenga permisos.`,
-          mentions: [m.sender]
-        }, { quoted: m })
-      }
+      await conn.sendMessage(m.chat, { text: `🚫 Hey ${userTag}, no se permiten links aquí.`, mentions: [m.sender] }, { quoted: m })
+      await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
       return true
     }
   }
 
-  // WELCOME / BYE
+  // 👋 WELCOME/BYE
   if (chat.welcome && [27, 28, 32].includes(m.messageStubType)) {
     const groupMetadata = await conn.groupMetadata(m.chat)
     const groupSize = groupMetadata.participants.length
     const userId = m.messageStubParameters?.[0] || m.sender
     const userMention = `@${userId.split('@')[0]}`
     let profilePic
-
     try {
       profilePic = await conn.profilePictureUrl(userId, 'image')
     } catch {
@@ -142,31 +127,17 @@ handler.before = async (m, { conn }) => {
     }
 
     if (m.messageStubType === 27) {
-      const txtWelcome = '↷✦; w e l c o m e ❞'
-      const bienvenida = `
-✿ *Bienvenid@* a *${groupMetadata.subject}*   
-✰ ${userMention}, qué gusto :D 
-✦ Ahora somos *${groupSize}*
-`.trim()
-
       await conn.sendMessage(m.chat, {
         image: { url: profilePic },
-        caption: `${txtWelcome}\n\n${bienvenida}`,
+        caption: `↷✦; w e l c o m e ❞\n\n✿ *Bienvenid@* a *${groupMetadata.subject}* \n✰ ${userMention}\n✦ Ahora somos *${groupSize}*`,
         contextInfo: { mentionedJid: [userId] }
       })
     }
 
-    if (m.messageStubType === 28 || m.messageStubType === 32) {
-      const txtBye = '↷✦; b y e ❞'
-      const despedida = `
-✿ *Adiós* de *${groupMetadata.subject}*   
-✰ ${userMention}, vuelve pronto :>  
-✦ Somos *${groupSize}* aún.  
-`.trim()
-
+    if ([28, 32].includes(m.messageStubType)) {
       await conn.sendMessage(m.chat, {
         image: { url: profilePic },
-        caption: `${txtBye}\n\n${despedida}`,
+        caption: `↷✦; b y e ❞\n\n✿ *Adiós* de *${groupMetadata.subject}* \n✰ ${userMention}\n✦ Somos *${groupSize}* aún.`,
         contextInfo: { mentionedJid: [userId] }
       })
     }
