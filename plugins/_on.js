@@ -45,7 +45,7 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
   const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin']
   if (!validTypes.includes(type)) {
     return m.reply(
-      `✳️ Usa:\n${validTypes.map(v => `*.on ${v}* / *.off ${v}*`).join('\n')}`
+      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_`
     )
   }
 
