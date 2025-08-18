@@ -11,6 +11,12 @@ import cfonts from 'cfonts'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(__dirname)
 
+import { cleanPremiums } from "./lib/cleanPremium.js";
+
+// correr la limpieza cada hora (puedes ajustar ms)
+setInterval(() => {
+  cleanPremiums();
+}, 1000 * 60 * 60);
 
 cfonts.say('Tech-Bot V1', {
   font: 'block',        
