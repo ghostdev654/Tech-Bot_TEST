@@ -1,11 +1,18 @@
-let handler = async (m, { sock }) => {
-  // sock.user.id trae el jid del bot (ej: "1234567890@s.whatsapp.net")
-  let jid = sock.user.id;
-  let numero = jid.split("@")[0]; // solo el número
+let handler = async (m, { conn }) => {
+  try {
+    // conn.user.jid trae el JID completo, ej: "1234567890:11@s.whatsapp.net"
+    let botJid = conn.user?.jid || conn.user?.id 
 
-  await m.reply(`🤖 Este bot está usando el número: *${numero}*`);
-};
+    // Extraemos solo el número
+    let botNumber = botJid.split('@')[0].replace(/[^0-9]/g, '')
 
-handler.command = ["mibot", "botnum"];
-hanlder.rowner = true
-export default handler;
+    m.reply(`📱 Mi número real es: *${botNumber}*`)
+  } catch (e) {
+    console.error(e)
+    m.reply('❌ No pude obtener mi número.')
+  }
+}
+
+handler.command = /^botnum$/i
+
+export default handler
