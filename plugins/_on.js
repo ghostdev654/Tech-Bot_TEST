@@ -152,7 +152,7 @@ handler.before = async (m, { conn }) => {
 
     if (m.messageStubType === 29) {
       await conn.sendMessage(m.chat, {
-        text: `《★》@${participantes[0].split("@")[0]}⁩ Ahora es admin del grupo.
+        text: `『★』@${participantes[0].split("@")[0]}⁩ Ahora es admin del grupo.
 
 > ✧ Acción hecha por:
 > » @${actor.split("@")[0]}`,
@@ -162,7 +162,7 @@ handler.before = async (m, { conn }) => {
 
     if (m.messageStubType === 30) {
       await conn.sendMessage(m.chat, {
-        text: `《★》@${participantes[0].split("@")[0]}⁩ Ya no es admin del grupo.
+        text: `『★』@${participantes[0].split("@")[0]}⁩ Ya no es admin del grupo.
 
 > ✧ Acción hecha por:
 > » @${actor.split("@")[0]}`,
