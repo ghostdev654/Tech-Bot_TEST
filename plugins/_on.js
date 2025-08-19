@@ -154,7 +154,7 @@ handler.before = async (m, { conn }) => {
       await conn.sendMessage(m.chat, {
         text: `『★』@${participantes[0].split("@")[0]}⁩ Ahora es admin del grupo.
 
-> ✧ Acción hecha por:
+> • Acción hecha por:
 > » @${actor.split("@")[0]}`,
         mentions: [participantes[0], actor]
       })
@@ -164,7 +164,7 @@ handler.before = async (m, { conn }) => {
       await conn.sendMessage(m.chat, {
         text: `『★』@${participantes[0].split("@")[0]}⁩ Ya no es admin del grupo.
 
-> ✧ Acción hecha por:
+> • Acción hecha por:
 > » @${actor.split("@")[0]}`,
         mentions: [participantes[0], actor]
       })
