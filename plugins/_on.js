@@ -1,5 +1,6 @@
 import fs from 'fs'
-import path from 'path'
+import { join } from 'path'
+import { xpRange } from '../lib/levelling.js'
 
 const settingsPath = path.resolve('./json/settings.json')
 const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
@@ -28,7 +29,8 @@ function getChatConfig(botNumber, chatId) {
       antilink: false,
       welcome: false,
       antiarabe: false,
-      modoadmin: false
+      modoadmin: false,
+      logadmin: false
     }
     saveSettings(settings)
   }
@@ -42,10 +44,10 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
 
   const type = (args[0] || '').toLowerCase()
   const enable = command === 'on'
-  const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin']
+  const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin', 'logadmin']
   if (!validTypes.includes(type)) {
     return m.reply(
-      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_`
+      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n_.on logadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_\n_.off logadmin_`
     )
   }
 
@@ -139,6 +141,32 @@ handler.before = async (m, { conn }) => {
         image: { url: profilePic },
         caption: `↷✦; b y e ❞\n\n✿ *Adiós* de *${groupMetadata.subject}* \n✰ ${userMention}\n✦ Somos *${groupSize}* aún.`,
         contextInfo: { mentionedJid: [userId] }
+      })
+    }
+  }
+
+  // 👑 LOGS DE ADMINS (Promote/Demote)
+  if (chat.logadmin && [29, 30].includes(m.messageStubType)) {
+    const participantes = m.messageStubParameters || []
+    const actor = m.key.participant || m.sender
+
+    if (m.messageStubType === 29) {
+      await conn.sendMessage(m.chat, {
+        text: `《✦》@${participantes[0].split("@")[0]}⁩ Ahora es admin del grupo.
+
+> ✧ Acción hecha por:
+> » @${actor.split("@")[0]}
+`,
+        mentions: [participantes[0], actor]
+      })
+    }
+
+    if (m.messageStubType === 30) {
+      await conn.sendMessage(m.chat, {
+        text: `❌ *ADMINISTRADOR REMOVIDO*
+
+🔻 El admin @${actor.split("@")[0]} removió a @${participantes[0].split("@")[0]} de la administración.`,
+        mentions: [participantes[0], actor]
       })
     }
   }
