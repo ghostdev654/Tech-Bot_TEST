@@ -23,12 +23,12 @@ let handler = async function (m, { conn, text, usedPrefix, command }) {
   if (user.registered) {
     return m.reply(`🔒 Ya estás registrado
 
-¿Deseas reiniciar tu energía vital?
-➤ Usa: ${usedPrefix}unreg para renacer en el sistema`)
+¿Deseas borrar tu registro ?
+➤ Usa: ${usedPrefix}unreg para borrar tu registro `)
   }
 
   if (!Reg.test(text)) {
-    return m.reply(`❗ Formato erróneo dimensional
+    return m.reply(`❗ Formato erróneo.
 
 ➤ Usa: ${usedPrefix + command} nombre.edad
 ➤ Ejemplo: ${usedPrefix + command} ${name2}.18`)
@@ -36,13 +36,13 @@ let handler = async function (m, { conn, text, usedPrefix, command }) {
 
   let [_, name, age] = text.match(Reg)
 
-  if (!name) return m.reply('⚠️ Tu identidad no puede estar vacía')
-  if (!age) return m.reply('⚠️ Edad requerida para iniciar el viaje')
-  if (name.length >= 100) return m.reply('⚠️ Nombre demasiado extenso para esta realidad')
+  if (!name) return m.reply('⚠️ Tu identidad no puede estat vacía.')
+  if (!age) return m.reply('⚠️ Edad requerida para registrarte.')
+  if (name.length >= 100) return m.reply('⚠️ Nombre demasiado extenso.')
 
   age = parseInt(age)
   if (age > 1000) return m.reply('⚠️ Edad cósmica no permitida')
-  if (age < 13) return m.reply('⚠️ Debes tener al menos 13 lunas de existencia')
+  if (age < 13) return m.reply('⚠️ Debes tener al menos 13 años de edad.')
 
   user.name = name.trim()
   user.age = age
@@ -55,7 +55,7 @@ let handler = async function (m, { conn, text, usedPrefix, command }) {
   const sn = createHash('md5').update(m.sender).digest('hex').slice(0, 20)
 
   const certificadoPacto = `
-🪪 ✦⟩ 𝖢𝖾𝗋𝗍𝗂𝖿𝗂𝖼𝖺𝖽𝗈  ✦⟨🪪
+*_🟢 REGISTRADO!_*
 
 🔮 Nombre: ${name}
 🕒 Edad: ${age}
@@ -89,7 +89,7 @@ ${moneda}: +46`.trim()
         })
       }
     } catch (e) {
-      console.error('❌ Error en la transmisión espiritual:', e)
+      console.error('❌ Error en la verificación:', e)
     }
   }
 }
