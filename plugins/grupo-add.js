@@ -17,7 +17,7 @@ let handler = async (m, { conn, text, args }) => {
 };
 
 handler.command = ["add", "añadir"];
-handler.tags = ["gruop"]
+handler.tags = ["group"]
 handler.help = ["add <numero>"]
 handler.admin = true; // solo admins del grupo
 handler.group = true; // solo en grupos
