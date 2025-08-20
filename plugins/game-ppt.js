@@ -65,6 +65,6 @@ handler.before = async (m, { conn }) => {
 }
 
 handler.command = ["ppt"]
-hanlder.tags = ["game"]
-hanlder.registrer = true
+handler.tags = ["game"]
+handler.registrer = true
 export default handler
