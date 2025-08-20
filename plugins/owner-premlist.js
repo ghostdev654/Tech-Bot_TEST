@@ -32,13 +32,13 @@ let handler = async (m, { conn }) => {
         hour: "2-digit",
         minute: "2-digit"
       });
-      return `*${i + 1}.* wa.me/${id} ⏳ Expira: ${fecha}`;
+      return `*${i + 1}.* ${id} ⏳ Expira: ${fecha}`;
     } else {
-      return `*${i + 1}.* wa.me/${id} ⚡ Permanente`;
+      return `*${i + 1}.* ${id} ⚡ Permanente`;
     }
   }).join("\n");
 
-  m.reply(`✨ *Lista de usuarios Premium* ✨\n\n${lista}`);
+  m.reply(`✨ *Lista de usuarios Premium*\n\n${lista}`);
 };
 
 handler.help = ["premlist"];
