@@ -1,5 +1,7 @@
-// Comando: .ppt
-let handler = async (m, { conn }) => {
+import fs from 'fs'
+
+// === Comando para iniciar el juego ===
+const handler = async (m, { conn }) => {
   let botJid = conn.user?.jid || conn.user?.id
   let botProfile
   try {
@@ -10,60 +12,78 @@ let handler = async (m, { conn }) => {
   const isBusiness = !!botProfile
 
   if (isBusiness) {
-    // Solo texto si es Business
-    await conn.sendMessage(m.chat, {
-      text: "Elige: piedra, papel o tijera (escribe tu opción)"
-    }, { quoted: m })
+    // Business = solo texto
+    return m.reply(
+      `🎮 *Piedra, Papel o Tijera* 🎮\n\n` +
+      `Elige tu jugada respondiendo con:\n` +
+      `1 = 🪨 Piedra\n` +
+      `2 = 📄 Papel\n` +
+      `3 = ✂️ Tijera`
+    )
   } else {
-    // Con botones interactivos si no es Business
-    const sections = [
-      {
-        title: "Jugada",
-        rows: [
-          { title: "🪨 Piedra", rowId: ".ppt piedra" },
-          { title: "📄 Papel", rowId: ".ppt papel" },
-          { title: "✂️ Tijera", rowId: ".ppt tijera" }
-        ]
-      }
+    // Normal = con botones
+    const buttons = [
+      { buttonId: 'ppt_piedra', buttonText: { displayText: '🪨 Piedra' }, type: 1 },
+      { buttonId: 'ppt_papel', buttonText: { displayText: '📄 Papel' }, type: 1 },
+      { buttonId: 'ppt_tijera', buttonText: { displayText: '✂️ Tijera' }, type: 1 }
     ]
-    await conn.sendMessage(m.chat, {
-      text: "¿Qué eliges?",
-      footer: "Piedra, papel o tijera",
-      title: "🎮 Juego RPS",
-      buttonText: "Elige tu jugada",
-      sections
+    return await conn.sendMessage(m.chat, {
+      text: '🎮 *Piedra, Papel o Tijera*\n\nElige tu jugada:',
+      footer: 'Juego clásico',
+      buttons,
+      headerType: 1
     }, { quoted: m })
   }
 }
 
-// Resolver jugada si el usuario responde con .ppt <opción>
+handler.command = /^ppt$/i
+handler.help = ['ppt']
+handler.tags = ['game']
+
+// === Resolver jugada (before) ===
 handler.before = async (m, { conn }) => {
-  if (!m.text) return
-  if (!m.text.startsWith('.ppt ')) return
+  if (!m.message) return
 
-  let choice = m.text.slice(5).trim().toLowerCase()
-  if (!["piedra", "papel", "tijera"].includes(choice)) return
+  let botJid = conn.user?.jid || conn.user?.id
+  let botProfile
+  try {
+    botProfile = await conn.getBusinessProfile(botJid)
+  } catch {
+    botProfile = null
+  }
+  const isBusiness = !!botProfile
 
-  let botChoice = ["piedra", "papel", "tijera"][Math.floor(Math.random() * 3)]
-  let result = ""
+  const choices = ['🪨 Piedra', '📄 Papel', '✂️ Tijera']
+  const botChoice = choices[Math.floor(Math.random() * choices.length)]
 
-  if (choice === botChoice) {
-    result = "🤝 ¡Empate!"
-  } else if (
-    (choice === "piedra" && botChoice === "tijera") ||
-    (choice === "papel" && botChoice === "piedra") ||
-    (choice === "tijera" && botChoice === "papel")
-  ) {
-    result = "🎉 ¡Ganaste!"
-  } else {
-    result = "😢 Perdiste..."
+  // Caso Business: texto 1, 2, 3
+  if (isBusiness && /^[123]$/.test(m.text)) {
+    const userChoice = choices[parseInt(m.text) - 1]
+    let result = getResult(userChoice, botChoice)
+    await conn.sendMessage(m.chat, { text: `Tú: ${userChoice}\nBot: ${botChoice}\n\n${result}` }, { quoted: m })
+    return true
   }
 
-  await conn.sendMessage(m.chat, {
-    text: `Tú elegiste: *${choice}*\nYo elegí: *${botChoice}*\n\n${result}`
-  }, { quoted: m })
+  // Caso normal: botones
+  if (m.message?.buttonsResponseMessage) {
+    let id = m.message.buttonsResponseMessage.selectedButtonId
+    if (!id.startsWith('ppt_')) return
+
+    let userChoice = id === 'ppt_piedra' ? choices[0] : id === 'ppt_papel' ? choices[1] : choices[2]
+    let result = getResult(userChoice, botChoice)
+    await conn.sendMessage(m.chat, { text: `Tú: ${userChoice}\nBot: ${botChoice}\n\n${result}` }, { quoted: m })
+    return true
+  }
 }
 
-handler.command = ["ppt"]
-handler.tags = ["game"]
+function getResult(user, bot) {
+  if (user === bot) return '🤝 ¡Empate!'
+  if (
+    (user.includes('Piedra') && bot.includes('Tijera')) ||
+    (user.includes('Papel') && bot.includes('Piedra')) ||
+    (user.includes('Tijera') && bot.includes('Papel'))
+  ) return '🎉 ¡Ganaste!'
+  return '😢 Perdiste...'
+}
+
 export default handler
