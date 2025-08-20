@@ -30,8 +30,7 @@ function getChatConfig(botNumber, chatId) {
       antilink: false,
       welcome: false,
       antiarabe: false,
-      modoadmin: false,
-      logadmin: false
+      modoadmin: false
     }
     saveSettings(settings)
   }
@@ -48,7 +47,7 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
   const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin', 'logadmin']
   if (!validTypes.includes(type)) {
     return m.reply(
-      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n_.on logadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_\n_.off logadmin_`
+      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_`
     )
   }
 
@@ -146,31 +145,6 @@ handler.before = async (m, { conn }) => {
     }
   }
 
-  // 👑 LOGS DE ADMINS (Promote/Demote)
-  if (chat.logadmin && [29, 30].includes(m.messageStubType)) {
-    const participantes = m.messageStubParameters || []
-    const actor = m.key.participant || m.sender
-
-    if (m.messageStubType === 29) {
-      await conn.sendMessage(m.chat, {
-        text: `『★』@${participantes[0].split("@")[0]}⁩ Ahora es admin del grupo.
-
-> • Acción echa por:
-> » @${actor.split("@")[0]}`,
-        mentions: [participantes[0], actor]
-      })
-    }
-
-    if (m.messageStubType === 30) {
-      await conn.sendMessage(m.chat, {
-        text: `『★』@${participantes[0].split("@")[0]}⁩ Ya no es admin del grupo.
-
-> • Acción hecha por:
-> » @${actor.split("@")[0]}`,
-        mentions: [participantes[0], actor]
-      })
-    }
-  }
 }
 
 export default handler
