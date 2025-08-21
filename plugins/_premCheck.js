@@ -1,78 +1,77 @@
-import fs from "fs"
-import path from "path"
+import fs from 'fs'
+import path from 'path'
 
-// Rutas
-const premiumPath = path.join("./json", "premium.json")
-const premiumCmdPath = path.join("./json", "premium_cmds.json")
-const togglePath = path.join("./json", "premtoggle.json")
+// Rutas de configuración
+const togglePath = path.join('./json', 'premtoggle.json')
+const premiumPath = path.join('./json', 'premium.json')
+const cmdsPath = path.join('./json', 'premium_cmds.json')
 
-// Leer archivo helper
-function readJson(file, defaultValue = []) {
+// Leer configuración toggle
+function readConfig() {
   try {
-    if (!fs.existsSync(file)) {
-      fs.writeFileSync(file, JSON.stringify(defaultValue, null, 2))
-      return defaultValue
+    if (!fs.existsSync(togglePath)) {
+      fs.writeFileSync(togglePath, JSON.stringify({ enabled: true }, null, 2))
     }
-    return JSON.parse(fs.readFileSync(file))
+    return JSON.parse(fs.readFileSync(togglePath))
   } catch {
-    return defaultValue
+    return { enabled: true }
   }
 }
 
-// Guardar archivo helper
-function writeJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2))
+// Guardar configuración toggle
+function writeConfig(data) {
+  fs.writeFileSync(togglePath, JSON.stringify(data, null, 2))
 }
 
-// Chequear si el bot actual es premium
+// Verificar si el bot es premium
 function isBotPremium(conn) {
-  const premiumBots = readJson(premiumPath, [])
-  let botJid = conn.user?.jid || conn.user?.id || ""
-  let botNum = botJid.replace(/[^0-9]/g, "") // sacar el número
+  const premiumBots = fs.existsSync(premiumPath)
+    ? JSON.parse(fs.readFileSync(premiumPath))
+    : []
+  let botJid = conn.user?.jid || conn.user?.id || ''
+  let botNum = botJid.replace(/[^0-9]/g, '') // solo números
   return premiumBots.includes(botNum)
 }
 
-// Handler del comando .premfuncion
-async function premFuncionHandler(m, { conn, args }) {
-  const toggle = readJson(togglePath, { enabled: true })
-  if (!args[0]) {
-    return m.reply(`Estado actual: ${toggle.enabled ? "✅ ON" : "❌ OFF"}`)
+// === HANDLER PRINCIPAL ===
+const handler = async (m, { command, args, conn }) => {
+  let config = readConfig()
+  const type = (args[0] || '').toLowerCase()
+
+  if (!['premfuncion'].includes(type)) {
+    return m.reply(`✳️ Usa:\n*.on3 premfuncion* / *.off3 premfuncion*`)
   }
 
-  if (args[0] === "on") {
-    toggle.enabled = true
-    writeJson(togglePath, toggle)
-    return m.reply("✅ Funciones premium habilitadas")
-  }
-  if (args[0] === "off") {
-    toggle.enabled = false
-    writeJson(togglePath, toggle)
-    return m.reply("❌ Funciones premium deshabilitadas")
-  }
+  const enable = command === 'on3'
+  config.enabled = enable
+  writeConfig(config)
 
-  return m.reply("Uso: .premfuncion on/off")
+  return m.reply(`✅ Funciones premium ${enable ? 'activadas' : 'desactivadas'}.`)
 }
 
-// Middleware para bloquear comandos premium
-async function checkPremiumCommand(m, { conn, command }) {
-  const toggle = readJson(togglePath, { enabled: true })
-  const premiumCmds = readJson(premiumCmdPath, [])
-  const isPremiumCmd = premiumCmds.includes(command)
+handler.command = ['on3', 'off3']
+handler.rowner = true
+handler.tags = ['owner']
+handler.help = ['on3 premfuncion', 'off3 premfuncion']
 
-  // Si no es comando premium, todo bien
-  if (!isPremiumCmd) return true
+// === MIDDLEWARE PREMIUM ===
+handler.before = async (m, { conn, command }) => {
+  const config = readConfig()
+  const premiumCmds = fs.existsSync(cmdsPath)
+    ? JSON.parse(fs.readFileSync(cmdsPath))
+    : []
 
-  // Si el bot es premium, ignora el toggle y deja pasar
-  if (isBotPremium(conn)) return true
+  // Si el comando no está en la lista premium, no hacer nada
+  if (!premiumCmds.includes(command)) return
 
-  // Si toggle está apagado, bloquear
-  if (!toggle.enabled) {
-    await m.reply("⚠️ Este comando premium está deshabilitado por el owner.")
-    return false
+  // Si el bot es premium → siempre deja usar
+  if (isBotPremium(conn)) return
+
+  // Si la función está desactivada → bloquear
+  if (!config.enabled) {
+    await m.reply('⚠️ Este comando premium está deshabilitado por el owner.')
+    return true
   }
-
-  return true
 }
 
-// Exportar
-export { premFuncionHandler, checkPremiumCommand }
+export default handler
