@@ -4,7 +4,7 @@ import { join } from 'path'
 import { xpRange } from '../lib/levelling.js'
 
 const settingsPath = path.resolve('./json/settings.json')
-const defaultImage = 'https://files.catbox.moe/ubftco.jpg'
+const defaultImage = 'https://cdn.russellxz.click/a0db6af8.jpeg'
 
 // === UTILS JSON ===
 function readSettings() {
