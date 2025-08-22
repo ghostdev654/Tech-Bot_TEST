@@ -1,73 +1,63 @@
-import fs from "fs"
+// ./plugins/arcado.js
+import fs from 'fs'
 
-let partidas = {} // Guardamos partidas activas
+let partidas = {} // Guardamos partidas por chatId
 
-let handler = async (m, { conn, text }) => {
-  let id = m.chat
-  if (!partidas[id]) partidas[id] = null
+// 🎮 Comando para iniciar
+let handler = async (m, { conn, command }) => {
+  let palabras = ["PROGRAMAR", "DISCORD", "JAVASCRIPT", "ARGENTINA", "ARCADE"]
+  let palabra = palabras[Math.floor(Math.random() * palabras.length)]
 
-  // Iniciar juego
-  if (text.toLowerCase() === "start") {
-    const palabras = ["PROGRAMADOR", "DISCORD", "JAVASCRIPT", "BAILEYS", "CHATGPT", "MUSICA", "WHATSAPP"]
-    let palabra = palabras[Math.floor(Math.random() * palabras.length)]
-
-    partidas[id] = {
-      palabra,
-      progreso: "_ ".repeat(palabra.length).trim().split(" "),
-      intentos: 6,
-      usadas: []
-    }
-
-    return conn.reply(m.chat, `🎮 *Ahorcado iniciado*\n\nPalabra: ${partidas[id].progreso.join(" ")}\n\nEnvia una letra para adivinar.\nTienes ${partidas[id].intentos} vidas.`, m)
+  partidas[m.chat] = {
+    palabra,
+    progreso: Array(palabra.length).fill("_"),
+    intentos: 6,
+    letrasUsadas: []
   }
 
-  // Si no hay partida en curso
-  if (!partidas[id]) {
-    return conn.reply(m.chat, `❌ No hay ninguna partida activa.\nEscribe *start* para iniciar.`, m)
+  await conn.sendMessage(m.chat, { text: `🎮 *Juego de Arcado iniciado*\n\n${partidas[m.chat].progreso.join(" ")}\n\nResponde este mensaje con una letra.` }, { quoted: m })
+}
+
+handler.command = /^arcado$/i
+export default handler
+
+// 🎯 Handler global para capturar letras
+export async function all(m, { conn }) {
+  if (!m.quoted) return // Solo responde si contestan a un mensaje
+  let partida = partidas[m.chat]
+  if (!partida) return
+
+  let letra = (m.text || "").trim().toUpperCase()
+  if (!/^[A-ZÑ]$/.test(letra)) return // Acepta solo una letra válida
+
+  if (partida.letrasUsadas.includes(letra)) {
+    return conn.sendMessage(m.chat, { text: `⚠️ Ya usaste la letra *${letra}*` }, { quoted: m })
   }
 
-  let game = partidas[id]
-  let letra = text?.trim()?.toUpperCase()
-  if (!letra || letra.length !== 1 || !/[A-ZÑ]/.test(letra)) return // Ignorar mensajes no válidos
+  partida.letrasUsadas.push(letra)
 
-  // Ya usada
-  if (game.usadas.includes(letra)) {
-    return conn.reply(m.chat, `⚠️ La letra *${letra}* ya fue usada.\nIntentá otra.`, m)
-  }
-
-  game.usadas.push(letra)
-
-  if (game.palabra.includes(letra)) {
-    // Actualizar progreso
-    for (let i = 0; i < game.palabra.length; i++) {
-      if (game.palabra[i] === letra) {
-        game.progreso[i] = letra
+  if (partida.palabra.includes(letra)) {
+    // Reemplazar guiones por letras correctas
+    for (let i = 0; i < partida.palabra.length; i++) {
+      if (partida.palabra[i] === letra) {
+        partida.progreso[i] = letra
       }
     }
   } else {
-    game.intentos--
+    partida.intentos--
   }
 
-  // Ver si ganó
-  if (!game.progreso.includes("_")) {
-    conn.reply(m.chat, `🎉 ¡Ganaste!\nLa palabra era: *${game.palabra}*`, m)
-    delete partidas[id]
-    return
+  if (!partida.progreso.includes("_")) {
+    delete partidas[m.chat]
+    return conn.sendMessage(m.chat, { text: `🏆 ¡Ganaste! La palabra era *${partida.palabra}*` }, { quoted: m })
   }
 
-  // Ver si perdió
-  if (game.intentos <= 0) {
-    conn.reply(m.chat, `💀 Perdiste.\nLa palabra era: *${game.palabra}*`, m)
-    delete partidas[id]
-    return
+  if (partida.intentos <= 0) {
+    delete partidas[m.chat]
+    return conn.sendMessage(m.chat, { text: `❌ Perdiste. La palabra era *${partida.palabra}*` }, { quoted: m })
   }
 
-  // Mostrar progreso
-  conn.reply(m.chat, `\n${game.progreso.join(" ")}\n\n❌ Letras usadas: ${game.usadas.join(", ")}\n❤️ Vidas restantes: ${game.intentos}`, m)
+  await conn.sendMessage(m.chat, { 
+    text: `🎮 Arcado\n\n${partida.progreso.join(" ")}\n\n❌ Letras incorrectas: ${partida.letrasUsadas.filter(l => !partida.palabra.includes(l)).join(", ") || "-"}\n❤️ Intentos restantes: ${partida.intentos}` 
+  }, { quoted: m })
 }
-
-handler.help = ["ahorcado"]
-handler.tags = ["game"]
-handler.command = /^ahorcado$/i
-
-export default handler
