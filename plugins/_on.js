@@ -1,5 +1,4 @@
 import fs from 'fs'
-import path from 'path'
 import { join } from 'path'
 import { xpRange } from '../lib/levelling.js'
 
@@ -30,12 +29,16 @@ function getChatConfig(botNumber, chatId) {
       antilink: false,
       welcome: false,
       antiarabe: false,
-      modoadmin: false
+      modoadmin: false,
+      antispam: false
     }
     saveSettings(settings)
   }
   return settings
 }
+
+// === ANTISPAM TRACKER ===
+const antispamTracker = new Map()
 
 // === COMANDO ON/OFF ===
 const handler = async (m, { conn, command, args, isAdmin }) => {
@@ -44,10 +47,10 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
 
   const type = (args[0] || '').toLowerCase()
   const enable = command === 'on'
-  const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin', 'logadmin']
+  const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin', 'antispam']
   if (!validTypes.includes(type)) {
     return m.reply(
-      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_`
+      `*_🟢 ON:_*\n\n_.on antilink_\n_.on welcome_\n_.on antiarabe_\n_.on modoadmin_\n_.on antispam_\n\n\n*_🔴 OFF:_*\n\n_.off antilink_\n_.off welcome_\n_.off antiarabe_\n_.off modoadmin_\n_.off antispam_`
     )
   }
 
@@ -71,6 +74,34 @@ handler.before = async (m, { conn }) => {
   const botNumber = conn.user?.jid || 'bot'
   const settings = getChatConfig(botNumber, m.chat)
   const chat = settings[botNumber][m.chat]
+
+  // 🚫 ANTISPAM (3-5 mensajes en 3s)
+  if (chat.antispam && !m.fromMe) {
+    const key = m.sender + m.chat
+    const now = Date.now()
+    let tracker = antispamTracker.get(key) || { timestamps: [], warnTime: 0 }
+    tracker.timestamps.push(now)
+    // Limpiar timestamps viejos (>3s)
+    while (tracker.timestamps.length && tracker.timestamps[0] < now - 3000) {
+      tracker.timestamps.shift()
+    }
+    if (tracker.timestamps.length >= 3) {
+      if (tracker.warnTime === 0 || now - tracker.warnTime > 15000) {
+        // Primera advertencia o advertencia expirada
+        await conn.sendMessage(m.chat, { text: `⚠️ @${m.sender.split('@')[0]} evita hacer spam. [ Anti Spam Activado ]`, mentions: [m.sender] })
+        tracker.warnTime = now
+      } else {
+        // Spam dentro de 15s después de advertencia: expulsar
+        await conn.sendMessage(m.chat, { text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [ Anti Spam Activado ]`, mentions: [m.sender] })
+        await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
+        antispamTracker.delete(key)
+        return true
+      }
+      // Reset timestamps después de acción
+      tracker.timestamps = []
+    }
+    antispamTracker.set(key, tracker)
+  }
 
   // 🔒 MODO ADMIN
   if (chat.modoadmin) {
