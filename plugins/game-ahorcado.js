@@ -38,7 +38,7 @@ let handler = async (m, { conn, args }) => {
     `❌ Fallos: 0/0${maxFallos}`,
     'Letras incorrectas: -',
     '',
-    '👉 *Responde a ESTE mensaje* con una sola letra (A-Z).'
+    '👉 *Responde a ESTE mensaje* con una sola letra (A-Z).\n\n> Usa *.ahorcado stop* para detener el juego.'
   ].join('\n')
 
   const sent = await conn.sendMessage(chatId, { text: txt, mentions: [userId] }, { quoted: m })
