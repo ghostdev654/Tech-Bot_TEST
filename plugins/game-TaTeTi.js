@@ -1,6 +1,7 @@
 import fs from 'fs'
 
 let partidasTateti = {}
+const TURN_TIMEOUT = 30000 // 30 segundos ⏳
 
 let handler = async (m, { conn, args }) => {
   let id = m.chat
@@ -15,15 +16,18 @@ let handler = async (m, { conn, args }) => {
       board: Array(9).fill(null), // tablero vacío
       turn: playerX,
       players: { X: playerX, O: playerO },
-      symbols: { [playerX]: '❌', [playerO]: '⭕' }
+      symbols: { [playerX]: '❌', [playerO]: '⭕' },
+      timer: null
     }
 
     conn.reply(
       id,
-      renderBoard(partidasTateti[id].board) + `\n\n🎮 Turno de: @${playerX.split('@')[0]}`,
+      renderBoard(partidasTateti[id].board) + `\n\n🎮 Turno de: @${playerX.split('@')[0]} (tienes 30s)`,
       m,
       { mentions: [playerX] }
     )
+
+    startTimer(conn, id, playerX)
   } else {
     m.reply('⚠️ Ya hay una partida en curso en este chat. Termínenla antes de empezar otra.')
   }
@@ -46,6 +50,9 @@ handler.before = async (m, { conn }) => {
   }
 
   partida.board[move] = partida.symbols[player]
+
+  // Cancelar temporizador del jugador que jugó
+  clearTimeout(partida.timer)
 
   // Revisar victoria
   if (checkWin(partida.board, partida.symbols[player])) {
@@ -70,10 +77,12 @@ handler.before = async (m, { conn }) => {
   partida.turn = player === partida.players.X ? partida.players.O : partida.players.X
   conn.reply(
     id,
-    renderBoard(partida.board) + `\n\n🎮 Turno de: @${partida.turn.split('@')[0]}`,
+    renderBoard(partida.board) + `\n\n🎮 Turno de: @${partida.turn.split('@')[0]} (tienes 30s)`,
     m,
     { mentions: [partida.turn] }
   )
+
+  startTimer(conn, id, partida.turn)
 }
 handler.help = ['tateti']
 handler.command = ['tateti', 'ttt']
@@ -101,4 +110,20 @@ function checkWin(board, symbol) {
     [0,4,8], [2,4,6]           // diagonales
   ]
   return lines.some(([a,b,c]) => board[a] === symbol && board[b] === symbol && board[c] === symbol)
+}
+
+// === Timer por turno ===
+function startTimer(conn, id, player) {
+  let partida = partidasTateti[id]
+  if (!partida) return
+
+  partida.timer = setTimeout(() => {
+    conn.reply(
+      id,
+      `⏳ Tiempo agotado!\n\n🏆 Ganador: @${(player === partida.players.X ? partida.players.O : partida.players.X).split('@')[0]}`,
+      null,
+      { mentions: [partida.players.X, partida.players.O] }
+    )
+    delete partidasTateti[id]
+  }, TURN_TIMEOUT)
 }
