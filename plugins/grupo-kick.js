@@ -38,9 +38,9 @@ var handler = async (m, { conn, args }) => {
     const ownerGroup = groupMetadata.owner || m.chat.split`-`[0] + '@s.whatsapp.net';
     const ownerBot = global.owner[0][0] + '@s.whatsapp.net';
 
-    if (user === conn.user.jid) return m.reply(`😂 Calma no me puedo sacar yo mismo`);
-    if (user === ownerGroup) return m.reply(`Ese es el dueño del no lo eliminaré grupo`);
-    if (user === ownerBot) return m.reply(`Que piensas? ¿qué sacaré a el dueño del bot?`);
+    if (user === conn.user.jid) return m.reply(`❌ *No puedes expulsar al mismo bot.`);
+    if (user === ownerGroup) return m.reply(`❌ *No puedo expulsar al _creador del grupo_*`);
+    if (user === ownerBot) return m.reply(`❌ *No puedo expulsar a mi creador.*`);
 
     try {
         await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
