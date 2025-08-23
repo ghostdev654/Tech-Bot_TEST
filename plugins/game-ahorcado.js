@@ -117,7 +117,7 @@ handler.before = async (m, { conn }) => {
     game.progreso.join(' '),
     '',
     `❌ Fallos: ${game.fallos}/${game.maxFallos}`,
-    `Letras incorrectas: ${game.incorrectas.join(', ') || '-'}`,
+    `Letras incorrectas:\n> ${game.incorrectas.join(' - ') || '[/]'}`,
     '',
     '👉 Responde *a este* mensaje con una letra.'
   ].join('\n')
