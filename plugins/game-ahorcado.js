@@ -1,37 +1,37 @@
 // ./plugins/arcado.js
-let juegos = {} // partidas por chat
+let juegos = {} // partidas por chat+usuario
 
 function getQuotedId(m) {
-  // Robusto entre distintas versiones
   return m?.quoted?.id || m?.quoted?.key?.id || m?.msg?.contextInfo?.stanzaId || null
 }
 
-let handler = async (m, { conn, args, command }) => {
-  // .arcado -> inicia juego
+let handler = async (m, { conn, args }) => {
   const chatId = m.chat
+  const userId = m.sender
+  const key = `${chatId}:${userId}`
 
-  // Opcional: .arcado stop para cancelar
+  // Cancelar
   if ((args[0] || '').toLowerCase() === 'stop') {
-    if (juegos[chatId]) {
-      delete juegos[chatId]
+    if (juegos[key]) {
+      delete juegos[key]
       return m.reply('🛑 Juego cancelado.')
     }
-    return m.reply('No hay juego activo.')
+    return m.reply('No tienes ningún juego activo aquí.')
   }
 
-  if (juegos[chatId]) {
-    return m.reply('⚠️ Ya hay un juego en curso en este chat. Responde al último mensaje del juego con UNA letra.')
+  // Ya hay juego para este user en este chat
+  if (juegos[key]) {
+    return m.reply('⚠️ Ya tienes un juego en curso en este chat. Responde al último mensaje del juego con UNA letra.')
   }
 
-  const PALABRAS = ['PROGRAMADOR','DISCORD','JAVASCRIPT','ARGENTINA','ESCOLAR','WHATSAPP','ARCADE','MUSICA','BAILEYS','CHATGPT','MAGNESIO','AZUFRE','OXIGENO','HIERRO','HIDROXIDO','TRIOXIDO','NEUMATICA','HIDRAULICA','IODO','SABANAS','PERRO','GATO','CABALLO','RINOCERONTE','ALFOMBRA','CASA','COMPUTADORA','TELEFONO','NUMERO','RADIO','AURICULARES','CARGADOR','CABLE','RELOJ','ZAPATO','PAIS','PERUANO','ARGENTINO','BRASILERO','PELUCHE','HELICOPTERO','ELEFANTE','VELERO','ASPIRADORA','TELEVISION','UNIFORME','TECLADO','PENSAMIENTO','ALIMENTO','COMPUTADORA','PARLANTE','MATE','CAFE','JUGO','JUEGO']
-  const palabra = PALABRAS[Math.floor(Math.random() * PALABRAS.length)] // SIEMPRE MAYÚSCULAS
+  const PALABRAS = ['PROGRAMADOR','DISCORD','JAVASCRIPT','ARGENTINA','ESCOLAR','WHATSAPP','ARCADE','MUSICA','BAILEYS','CHATGPT','MAGNESIO','AZUFRE','OXIGENO','HIERRO','HIDROXIDO','TRIOXIDO','NEUMATICA','HIDRAULICA','IODO','SABANAS','PERRO','GATO','CABALLO','RINOCERONTE','ALFOMBRA','CASA','COMPUTADORA','TELEFONO','NUMERO','RADIO','AURICULARES','CARGADOR','CABLE','RELOJ','ZAPATO','PAIS','PERUANO','ARGENTINO','BRASILERO','PELUCHE','HELICOPTERO','ELEFANTE','VELERO','ASPIRADORA','TELEVISION','UNIFORME','TECLADO','PENSAMIENTO','ALIMENTO','PARLANTE','MATE','CAFE','JUGO','JUEGO']
+  const palabra = PALABRAS[Math.floor(Math.random() * PALABRAS.length)]
   const progreso = Array.from({ length: palabra.length }, () => '_')
   const incorrectas = []
   const maxFallos = 6
 
-  // enviar primer estado y guardar el id para que solo cuenten replies a ese mensaje
   const txt = [
-    '🎮 *AHORCADO INICIADO*',
+    `🎮 *AHORCADO PARA @${userId.split('@')[0]}*`,
     '',
     progreso.join(' '),
     '',
@@ -41,15 +41,15 @@ let handler = async (m, { conn, args, command }) => {
     '👉 *Responde a ESTE mensaje* con una sola letra (A-Z).'
   ].join('\n')
 
-  const sent = await conn.sendMessage(chatId, { text: txt }, { quoted: m })
+  const sent = await conn.sendMessage(chatId, { text: txt, mentions: [userId] }, { quoted: m })
 
-  juegos[chatId] = {
-    palabra,              // p.ej. "ARGENTINA"
-    progreso,             // ['_','_','_','_','_','_','_','_','_']
-    incorrectas,          // ['B','C',...]
+  juegos[key] = {
+    palabra,
+    progreso,
+    incorrectas,
     fallos: 0,
     maxFallos,
-    anchorId: sent?.key?.id || sent?.id || null // el mensaje que deben responder
+    anchorId: sent?.key?.id || sent?.id || null
   }
 }
 
@@ -57,33 +57,29 @@ handler.help = ['ahorcado']
 handler.tags = ['game']
 handler.command = ['ahorcado', 'arcado', 'aorcado']
 
-// === LOOP: captura letras respondiendo al mensaje del juego ===
+// === LOOP: captura letras ===
 handler.before = async (m, { conn }) => {
   const chatId = m.chat
-  const game = juegos[chatId]
+  const userId = m.sender
+  const key = `${chatId}:${userId}`
+  const game = juegos[key]
   if (!game) return
 
-  // Debe ser respuesta al último estado del juego
   const quotedId = getQuotedId(m)
   if (!quotedId || quotedId !== game.anchorId) return
 
-  // Debe traer texto de UNA letra
   let raw = (m.text || '').trim()
   if (!raw || raw.length !== 1) return
-  // aceptar mayúsculas/minúsculas — normalizamos a MAYÚSCULAS
   const letra = raw.toUpperCase()
 
-  // Validar letra (A-Z + Ñ)
   if (!/^[A-ZÑ]$/.test(letra)) {
     return conn.sendMessage(chatId, { text: '❌ Envía *una sola letra* (A-Z).' }, { quoted: m })
   }
 
-  // No repetir
   if (game.progreso.includes(letra) || game.incorrectas.includes(letra)) {
     return conn.sendMessage(chatId, { text: `⚠️ La letra *${letra}* ya fue usada.` }, { quoted: m })
   }
 
-  // Procesar intento
   if (game.palabra.includes(letra)) {
     for (let i = 0; i < game.palabra.length; i++) {
       if (game.palabra[i] === letra) game.progreso[i] = letra
@@ -93,21 +89,18 @@ handler.before = async (m, { conn }) => {
     game.fallos++
   }
 
-  // ¿ganó?
   if (!game.progreso.includes('_')) {
-    await conn.sendMessage(chatId, { text: `🏆 *¡GANASTE!* La palabra era: \n> *${game.palabra}*` }, { quoted: m })
-    delete juegos[chatId]
+    await conn.sendMessage(chatId, { text: `🏆 *¡GANASTE @${userId.split('@')[0]}!* La palabra era: \n> *${game.palabra}*`, mentions: [userId] }, { quoted: m })
+    delete juegos[key]
     return true
   }
 
-  // ¿perdió?
   if (game.fallos >= game.maxFallos) {
-    await conn.sendMessage(chatId, { text: `💀 *Perdiste.* La palabra era: \n> *${game.palabra}*` }, { quoted: m })
-    delete juegos[chatId]
+    await conn.sendMessage(chatId, { text: `💀 *Perdiste @${userId.split('@')[0]}.* La palabra era: \n> *${game.palabra}*`, mentions: [userId] }, { quoted: m })
+    delete juegos[key]
     return true
   }
 
-  // Dibujito ASCII del ahorcado según fallos
   const H = [
     '```\n +---+\n |   |\n     |\n     |\n     |\n     |\n========\n```',
     '```\n +---+\n |   |\n O   |\n     |\n     |\n     |\n========\n```',
@@ -118,9 +111,8 @@ handler.before = async (m, { conn }) => {
     '```\n +---+\n |   |\n O   |\n/|\\  |\n/ \\  |\n     |\n========\n```'
   ][game.fallos]
 
-  // Enviar nuevo estado y actualizar anchorId para el próximo reply
   const status = [
-    '🎮 *AHORCADO*',
+    `🎮 *AHORCADO DE @${userId.split('@')[0]}*`,
     '',
     game.progreso.join(' '),
     '',
@@ -130,7 +122,7 @@ handler.before = async (m, { conn }) => {
     '👉 Responde *a este* mensaje con una letra.'
   ].join('\n')
 
-  const sent = await conn.sendMessage(chatId, { text: `${H}\n${status}` }, { quoted: m })
+  const sent = await conn.sendMessage(chatId, { text: `${H}\n${status}`, mentions: [userId] }, { quoted: m })
   game.anchorId = sent?.key?.id || sent?.id || game.anchorId
   return true
 }
