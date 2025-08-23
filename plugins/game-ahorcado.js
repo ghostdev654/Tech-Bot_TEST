@@ -31,7 +31,8 @@ let handler = async (m, { conn, args }) => {
   const maxFallos = 6
 
   const txt = [
-    `🎮 *AHORCADO PARA @${userId.split('@')[0]}*`,
+    `🎮 *AHORCADO INICIADO* 
+    > Juego de @${userId.split('@')[0]}’`,
     '',
     progreso.join(' '),
     '',
@@ -112,7 +113,8 @@ handler.before = async (m, { conn }) => {
   ][game.fallos]
 
   const status = [
-    `🎮 *AHORCADO DE @${userId.split('@')[0]}*`,
+    `🎮 *AHORCADO* 
+    > Juego de @${userId.split('@')[0]}’`,
     '',
     game.progreso.join(' '),
     '',
