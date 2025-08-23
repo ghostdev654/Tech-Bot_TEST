@@ -75,9 +75,9 @@ handler.before = async (m, { conn }) => {
     { mentions: [partida.turn] }
   )
 }
-hanlder.help = ['tateti']
+handler.help = ['tateti']
 handler.command = ['tateti', 'ttt']
-hanlder.tags = ['game']
+handler.tags = ['game']
 export default handler
 
 // === Renderizado con emojis ===
