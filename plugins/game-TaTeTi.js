@@ -1,7 +1,7 @@
 import fs from 'fs'
 
 let partidasTateti = {}
-const TURN_TIMEOUT = 10000 // 30 segundos ⏳
+const TURN_TIMEOUT = 40000 // 30 segundos ⏳
 
 let handler = async (m, { conn, args }) => {
   let id = m.chat
