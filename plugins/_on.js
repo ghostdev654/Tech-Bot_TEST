@@ -77,33 +77,55 @@ handler.before = async (m, { conn }) => {
   const chat = settings[botNumber][m.chat]
 
   // 🚫 ANTISPAM (3-5 mensajes en 3s)
-  if (chat.antispam && !m.fromMe) {
-    const key = m.sender + m.chat
-    const now = Date.now()
-    let tracker = antispamTracker.get(key) || { timestamps: [], warnTime: 0 }
-    tracker.timestamps.push(now)
-    // Limpiar timestamps viejos (>3s)
-    while (tracker.timestamps.length && tracker.timestamps[0] < now - 3000) {
-      tracker.timestamps.shift()
-    }
-    if (tracker.timestamps.length >= 3) {
-      if (tracker.warnTime === 0 || now - tracker.warnTime > 15000) {
-        // Primera advertencia o advertencia expirada
-        await conn.sendMessage(m.chat, { text: `⚠️ @${m.sender.split('@')[0]} evita hacer spam. [ Anti Spam Activado ]`, mentions: [m.sender] })
-        tracker.warnTime = now
-      } else {
-        // Spam dentro de 15s después de advertencia: expulsar
-        await conn.sendMessage(m.chat, { text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [ Anti Spam Activado ]`, mentions: [m.sender] })
+if (chat.antispam && !m.fromMe) {
+  const key = m.sender + m.chat
+  const now = Date.now()
+  let tracker = antispamTracker.get(key) || { timestamps: [], warnTime: 0 }
+
+  // Guardar timestamp actual
+  tracker.timestamps.push(now)
+
+  // Limpiar timestamps viejos (>3s)
+  tracker.timestamps = tracker.timestamps.filter(ts => now - ts <= 3000)
+
+  // Detectar spam (5 mensajes en 3s)
+  if (tracker.timestamps.length >= 5) {
+    const isAdmin = (await conn.groupMetadata(m.chat))
+      .participants.find(p => p.id === m.sender)?.admin
+
+    if (tracker.warnTime === 0 || now - tracker.warnTime > 15000) {
+      // Primera advertencia o advertencia expirada
+      await conn.sendMessage(m.chat, { 
+        text: `⚠️ @${m.sender.split('@')[0]} evita hacer spam. [ Anti Spam Activado ]`, 
+        mentions: [m.sender] 
+      })
+      tracker.warnTime = now
+    } else {
+      // Spam dentro de 15s después de advertencia
+      if (!isAdmin) {
+        await conn.sendMessage(m.chat, { 
+          text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [ Anti Spam Activado ]`, 
+          mentions: [m.sender] 
+        })
         await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
-        antispamTracker.delete(key)
-        return true
+      } else {
+        await conn.sendMessage(m.chat, { 
+          text: `⚠️ @${m.sender.split('@')[0]} es admin, pero sigue spameando. Acción no aplicada.`, 
+          mentions: [m.sender] 
+        })
       }
-      // Reset timestamps después de acción
-      tracker.timestamps = []
+      antispamTracker.delete(key)
+      return true
     }
-    antispamTracker.set(key, tracker)
+
+    // Reset después de acción
+    tracker.timestamps = []
   }
 
+  // Guardar el tracker actualizado
+  antispamTracker.set(key, tracker)
+}
+  
   // 🔒 MODO ADMIN
   if (chat.modoadmin) {
     const groupMetadata = await conn.groupMetadata(m.chat)
