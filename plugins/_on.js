@@ -86,10 +86,10 @@ if (chat.antispam && !m.fromMe) {
   tracker.timestamps.push(now)
 
   // Limpiar timestamps viejos (>3s)
-  tracker.timestamps = tracker.timestamps.filter(ts => now - ts <= 3000)
+  tracker.timestamps = tracker.timestamps.filter(ts => now - ts <= 4000)
 
   // Detectar spam (5 mensajes en 3s)
-  if (tracker.timestamps.length >= 5) {
+  if (tracker.timestamps.length >= 3) {
     const isAdmin = (await conn.groupMetadata(m.chat))
       .participants.find(p => p.id === m.sender)?.admin
 
@@ -104,7 +104,7 @@ if (chat.antispam && !m.fromMe) {
       // Spam dentro de 15s después de advertencia
       if (!isAdmin) {
         await conn.sendMessage(m.chat, { 
-          text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [ Anti Spam Activado ]`, 
+          text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [Anti Spam Activado]`, 
           mentions: [m.sender] 
         })
         await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
