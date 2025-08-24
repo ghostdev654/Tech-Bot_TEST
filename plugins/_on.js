@@ -93,10 +93,10 @@ if (chat.antispam && !m.fromMe) {
     const isAdmin = (await conn.groupMetadata(m.chat))
       .participants.find(p => p.id === m.sender)?.admin
 
-    if (tracker.warnTime === 0 || now - tracker.warnTime > 15000) {
+    if (tracker.warnTime === 0 || now - tracker.warnTime > 8000) {
       // Primera advertencia o advertencia expirada
       await conn.sendMessage(m.chat, { 
-        text: `⚠️ @${m.sender.split('@')[0]} evita hacer spam. [ Anti Spam Activado ]`, 
+        text: `⚠️ @${m.sender.split('@')[0]} evita hacer spam.\n> Espera 8s`, 
         mentions: [m.sender] 
       })
       tracker.warnTime = now
@@ -104,13 +104,13 @@ if (chat.antispam && !m.fromMe) {
       // Spam dentro de 15s después de advertencia
       if (!isAdmin) {
         await conn.sendMessage(m.chat, { 
-          text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido. [Anti Spam Activado]`, 
+          text: `🚫 @${m.sender.split('@')[0]} expulsado por spam repetido.\n> [Anti Spam Activado]`, 
           mentions: [m.sender] 
         })
         await conn.groupParticipantsUpdate(m.chat, [m.sender], 'remove')
       } else {
         await conn.sendMessage(m.chat, { 
-          text: `⚠️ @${m.sender.split('@')[0]} es admin, pero sigue spameando. Acción no aplicada.`, 
+          text: `⚠️ @${m.sender.split('@')[0]} es admin, pero sigue spameando. Acción no aplicada.\n> Admin Corrupto.`, 
           mentions: [m.sender] 
         })
       }
