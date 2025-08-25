@@ -25,7 +25,7 @@ let handler = async (m, { conn }) => {
   }
 }
 
-handler.command = ['ver']
+handler.command = ['ver_']
 handler.help = ['ver (responde a un mensaje de 1 vista)']
 handler.tags = ['tools']
 export default handler
