@@ -40,9 +40,23 @@ handler.all = async (m, { conn }) => {
     if (!saved) return
 
     let user = saved.sender.split('@')[0]
-    let text = `📛 Antidelete 📛\nEl usuario @${user} borró un mensaje:`
-    await conn.sendMessage(saved.chat, { text, mentions: [saved.sender] })
-    await conn.sendMessage(saved.chat, { forward: saved.message }, { quoted: null })
+
+    // Aviso
+    await conn.sendMessage(saved.chat, { 
+      text: `📛 Antidelete 📛\nEl usuario @${user} borró un mensaje:`, 
+      mentions: [saved.sender] 
+    })
+
+    // Reenvío del mensaje borrado
+    try {
+      await conn.relayMessage(
+        saved.chat,
+        saved.message,
+        { messageId: deletedKey.id } // mantiene el id original
+      )
+    } catch (e) {
+      console.error("Error reenvío:", e)
+    }
   }
 }
 
