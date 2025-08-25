@@ -3,21 +3,33 @@ let handler = async (m, { conn }) => {
 
   let msg = m.quoted
 
-  // Validar si es viewOnce
-  if (!msg.message?.viewOnceMessageV2 && !msg.message?.viewOnceMessageV2Extension) {
+  // Detectar viewOnce en cualquiera de sus formas
+  let viewOnce = msg.message?.viewOnceMessage?.message 
+              || msg.message?.viewOnceMessageV2?.message 
+              || msg.message?.viewOnceMessageV2Extension?.message
+
+  if (!viewOnce) {
     return m.reply("❌ Ese mensaje no es de una sola vista.")
   }
 
-  // Obtener el mensaje real adentro
-  let viewOnce = msg.message?.viewOnceMessageV2?.message || msg.message?.viewOnceMessageV2Extension?.message
+  // Tipo de archivo
   let type = Object.keys(viewOnce)[0]
 
   try {
     // Descargar el archivo
     let buffer = await conn.downloadMediaMessage({ message: viewOnce })
-    
-    // Enviar como normal
-    await conn.sendFile(m.chat, buffer, type + ".mp4", "🔓 Recuperado con éxito", m)
+
+    // Preparar envío según tipo
+    let opts = { quoted: m }
+    if (type === "imageMessage") {
+      await conn.sendFile(m.chat, buffer, "file.jpg", "🔓 Imagen recuperada", m)
+    } else if (type === "videoMessage") {
+      await conn.sendFile(m.chat, buffer, "file.mp4", "🔓 Video recuperado", m)
+    } else if (type === "audioMessage") {
+      await conn.sendFile(m.chat, buffer, "file.mp3", "", m, true)
+    } else {
+      m.reply("⚠️ Tipo de archivo no soportado aún.")
+    }
 
   } catch (e) {
     console.error(e)
