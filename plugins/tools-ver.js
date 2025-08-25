@@ -1,43 +1,66 @@
+import { downloadContentFromMessage } from '@whiskeysockets/baileys'
+
 let handler = async (m, { conn }) => {
-  if (!m.quoted) return m.reply("⚠️ Responde a un mensaje de *una sola vista* (foto/video/audio).")
-
-  let msg = m.quoted
-
-  // Detectar viewOnce en cualquiera de sus formas
-  let viewOnce = msg.message?.viewOnceMessage?.message 
-              || msg.message?.viewOnceMessageV2?.message 
-              || msg.message?.viewOnceMessageV2Extension?.message
-
-  if (!viewOnce) {
-    return m.reply("❌ Ese mensaje no es de una sola vista.")
-  }
-
-  // Tipo de archivo
-  let type = Object.keys(viewOnce)[0]
+  if (!m.quoted) return m.reply("⚠️ Responde a un mensaje de *ver una sola vez* (imagen, video o audio).")
 
   try {
-    // Descargar el archivo
-    let buffer = await conn.downloadMediaMessage({ message: viewOnce })
+    const quoted = m.quoted
 
-    // Preparar envío según tipo
-    let opts = { quoted: m }
-    if (type === "imageMessage") {
-      await conn.sendFile(m.chat, buffer, "file.jpg", "🔓 Imagen recuperada", m)
-    } else if (type === "videoMessage") {
-      await conn.sendFile(m.chat, buffer, "file.mp4", "🔓 Video recuperado", m)
-    } else if (type === "audioMessage") {
-      await conn.sendFile(m.chat, buffer, "file.mp3", "", m, true)
+    // Detectar viewOnce en cualquiera de sus variantes
+    const viewOnce = quoted.message?.viewOnceMessage?.message
+                  || quoted.message?.viewOnceMessageV2?.message
+                  || quoted.message?.viewOnceMessageV2Extension?.message
+
+    if (!viewOnce) return m.reply("❌ Ese mensaje no es de una sola vista.")
+
+    let mediaType, mediaMessage
+    if (viewOnce.imageMessage?.viewOnce) {
+      mediaType = "image"
+      mediaMessage = viewOnce.imageMessage
+    } else if (viewOnce.videoMessage?.viewOnce) {
+      mediaType = "video"
+      mediaMessage = viewOnce.videoMessage
+    } else if (viewOnce.audioMessage?.viewOnce) {
+      mediaType = "audio"
+      mediaMessage = viewOnce.audioMessage
     } else {
-      m.reply("⚠️ Tipo de archivo no soportado aún.")
+      return m.reply("❌ Solo puedes usar este comando en mensajes de *ver una sola vez*.")
     }
 
+    // Reacción ⏳ mientras procesa
+    await conn.sendMessage(m.chat, { react: { text: "⏳", key: m.key } })
+
+    // Descargar contenido
+    const stream = await downloadContentFromMessage(mediaMessage, mediaType)
+    let buffer = Buffer.alloc(0)
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([buffer, chunk])
+    }
+
+    if (!buffer || buffer.length === 0) {
+      return m.reply("❌ Error al descargar el archivo.")
+    }
+
+    // Reenviar según el tipo
+    if (mediaType === "image") {
+      await conn.sendMessage(m.chat, { image: buffer, mimetype: mediaMessage.mimetype }, { quoted: m })
+    } else if (mediaType === "video") {
+      await conn.sendMessage(m.chat, { video: buffer, mimetype: mediaMessage.mimetype }, { quoted: m })
+    } else if (mediaType === "audio") {
+      await conn.sendMessage(m.chat, { audio: buffer, mimetype: mediaMessage.mimetype }, { quoted: m })
+    }
+
+    // Confirmación ✅
+    await conn.sendMessage(m.chat, { react: { text: "✅", key: m.key } })
+
   } catch (e) {
-    console.error(e)
-    m.reply("❌ Error al recuperar el archivo.")
+    console.error("❌ Error en .ver:", e)
+    m.reply("❌ No se pudo recuperar el mensaje de *ver una sola vez*. Intenta de nuevo.")
   }
 }
 
 handler.command = ['ver_']
 handler.help = ['ver (responde a un mensaje de 1 vista)']
 handler.tags = ['tools']
+
 export default handler
