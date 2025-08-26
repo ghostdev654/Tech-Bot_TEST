@@ -28,7 +28,7 @@ let handler = async (m, { conn, args }) => {
           : []
         let status = premium.length > 0 ? "🌟 Premium" : "🆓 Gratis"
 
-        let bio = `𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 🔹𝐕𝟏 | ⏱️ ${up} By: ᵍʰᵒˢᵗᵈᵉᵛ·ʲˢ`
+        let bio = `𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 🔹𝐕𝟏 | ⏱️ ${up}`
         await conn.updateProfileStatus(bio).catch(() => {})
       } catch (e) {
         console.error("Error actualizando bio:", e)
