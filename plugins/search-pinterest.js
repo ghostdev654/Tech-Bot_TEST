@@ -1,8 +1,27 @@
 import axios from 'axios';
 import baileys from '@whiskeysockets/baileys';
 import cheerio from 'cheerio';
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 let handler = async (m, { conn, text, args }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  }
   if (!text) return m.reply(`🤍 Ingresa un texto. Ejemplo: .pinterest bmw`);
 
   try {
@@ -43,7 +62,6 @@ let handler = async (m, { conn, text, args }) => {
 handler.help = ['pinterest'];
 handler.command = ['pinterest', 'pin'];
 handler.tags = ["download"];
-handler.premium = true
 
 export default handler;
 
