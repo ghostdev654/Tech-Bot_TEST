@@ -1,4 +1,20 @@
 import { promises as fs } from 'fs';
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+  }
 
 const charactersFilePath = './database/characters.json';
 const haremFilePath = './database/harem.json';
@@ -27,6 +43,9 @@ async function saveHarem(data) {
 }
 
 let handler = async (m, { conn }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+      }
   const userId = m.sender;
   const now = Date.now();
 
@@ -38,13 +57,13 @@ let handler = async (m, { conn }) => {
   }
 
   if (!m.quoted || m.quoted.sender !== conn.user.jid) {
-    return await conn.reply(m.chat, '《✧》Cita un personaje válido enviado por el bot.', m);
+    return await conn.reply(m.chat, '⚠️ Cita un personaje válido enviado por el bot.', m);
   }
 
   // Extraer ID desde el mensaje citado
   const characterIdMatch = m.quoted.text.match(/ID:\s?\*(.+?)\*/);
   if (!characterIdMatch) {
-    return await conn.reply(m.chat, '《✧》No se encontró un ID válido en el mensaje citado.', m);
+    return await conn.reply(m.chat, '❌ No se encontró un ID válido en el mensaje citado.', m);
   }
 
   const characterId = characterIdMatch[1];
@@ -55,13 +74,13 @@ let handler = async (m, { conn }) => {
 
     const character = characters.find(c => c.id === characterId);
     if (!character) {
-      return await conn.reply(m.chat, '《✧》El personaje con ese ID no existe.', m);
+      return await conn.reply(m.chat, '❌ El personaje con ese ID no existe.', m);
     }
 
     if (character.user && character.user !== userId) {
       return await conn.reply(
         m.chat,
-        `> 《✧》El personaje ya fue reclamado por @${character.user.split('@')[0]}`,
+        `> ⚠️ El personaje ya fue reclamado por @${character.user.split('@')[0]}`,
         m,
         { mentions: [character.user] }
       );
@@ -83,11 +102,11 @@ let handler = async (m, { conn }) => {
 
     cooldowns[userId] = now + 30 * 60 * 1000;
 
-    await conn.reply(m.chat, `✦ Has reclamado a *${character.name}* con éxito :D`, m);
+    await conn.reply(m.chat, `✅ Has reclamado a *${character.name}* con éxito :)`, m);
 
   } catch (err) {
     console.error(err)
-    await conn.reply(m.chat, `✘ Error al reclamar: ${err.message}`, m);
+    await conn.reply(m.chat, `❌ Error al reclamar: ${err.message}`, m);
   }
 };
 
