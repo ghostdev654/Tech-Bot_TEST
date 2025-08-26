@@ -1,7 +1,7 @@
 import fs from "fs"
 import os from "os"
 
-const file = "./autobio.json"
+const file = "./json/autobio.json"
 
 if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify({ enabled: false }))
 
@@ -23,8 +23,8 @@ let handler = async (m, { conn, args }) => {
         let up = clockString(uptime)
 
         // ⚡ Puedes cambiar esto para leer desde premium.json
-        let premium = fs.existsSync("./premium.json")
-          ? JSON.parse(fs.readFileSync("./premium.json"))
+        let premium = fs.existsSync("./json/premium.json")
+          ? JSON.parse(fs.readFileSync("./json/premium.json"))
           : []
         let status = premium.length > 0 ? "🌟 Premium" : "🆓 Gratis"
 
