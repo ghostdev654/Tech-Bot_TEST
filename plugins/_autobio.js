@@ -38,11 +38,18 @@ async function startLoop(conn) {
       const uptime = process.uptime() * 1000
       const up = clockString(uptime)
 
+      // 🔥 Leer lista de premium
       let premiumList = []
       if (fs.existsSync(premiumFile)) {
-        premiumList = JSON.parse(fs.readFileSync(premiumFile))
+        try {
+          premiumList = JSON.parse(fs.readFileSync(premiumFile))
+        } catch {
+          premiumList = []
+        }
       }
-      const isPremium = premiumList.includes(num)
+
+      // Chequear si ESTE bot (su número) está en la lista
+      const isPremium = Array.isArray(premiumList) && premiumList.includes(num)
 
       const bio = `🤖 Tech-Bot V1 | ⏱️ ${up} | ${isPremium ? "🌟 Premium" : "🆓 Gratis"}`
       await conn.updateProfileStatus(bio).catch(() => {})
