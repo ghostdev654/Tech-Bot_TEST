@@ -47,8 +47,7 @@ let handler = async (m, { conn, text, args }) => {
         medias,
         {
           caption: `◜ Pinterest Search ◞\n\n≡ 🔎 \`Búsqueda :\` "${text}"\n≡ 📄 \`Resultados :\` ${medias.length}`,
-          quoted: m,
-          ...rcanal
+          quoted: m
         }
       );
 
