@@ -4,14 +4,32 @@
  * Repositorio: github.com/Ado-rgb
  * 🚫 No quitar créditos
  */
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
   conn.apk = conn.apk || {}
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+      }
 
   if (!text) {
     return conn.sendMessage(m.chat, {
-      text: `⚡ Ingresa el nombre de la aplicación que quieres buscar\n\n📌 Ejemplo:\n${usedPrefix + command} Facebook Lite`,
-      ...global.rcanal
+      text: `⚠️ Ingresa el nombre de la aplicación que quieres buscar\n\n📌 Ejemplo:\n${usedPrefix + command} Facebook Lite`
     }, { quoted: m })
   }
 
@@ -29,8 +47,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
 
       await conn.sendMessage(m.chat, {
         image: { url: data.img },
-        caption: `📱 *Nombre:* ${data.appname}\n👨‍💻 *Desarrollador:* ${data.developer}`,
-        ...global.rcanal
+        caption: `📱 *Nombre:* ${data.appname}\n👨‍💻 *Desarrollador:* ${data.developer}`
       }, { quoted: m })
 
       let dl = await conn.getFile(data.link)
@@ -53,7 +70,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
   // Buscar apps
   let results = await aptoide.search(text)
   if (!results.length) {
-    return conn.sendMessage(m.chat, { text: "⚠️ No se encontraron resultados para tu búsqueda.", ...global.rcanal }, { quoted: m })
+    return conn.sendMessage(m.chat, { text: "⚠️ No se encontraron resultados para tu búsqueda."}, { quoted: m })
   }
 
   conn.apk[m.sender] = {
@@ -82,7 +99,6 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
 handler.help = ["apk"]
 handler.tags = ["downloader"]
 handler.command = /^apk$/i
-handler.register = true
 
 export default handler
 
