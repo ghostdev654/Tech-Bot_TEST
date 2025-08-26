@@ -114,5 +114,4 @@ handler.help = ['c'];
 handler.tags = ['gacha'];
 handler.command = ['c', 'claim', 'reclamar'];
 handler.group = false;
-handler.register = true;
 export default handler;
