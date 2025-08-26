@@ -1,5 +1,20 @@
 import { promises as fs } from 'fs'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
 
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 const charactersFilePath = './database/characters.json'
 const haremFilePath = './database/harem.json'
 
@@ -8,7 +23,7 @@ async function loadCharacters() {
         const data = await fs.readFile(charactersFilePath, 'utf-8')
         return JSON.parse(data)
     } catch (error) {
-        throw new Error('ꕥ No pudimos atrapar la información de personajes.\n> ● *Si crees que es un fallo, repórtalo usando /report*')
+        throw new Error('❌ No pudimos atrapar la información de personajes.')
     }
 }
 
@@ -16,7 +31,7 @@ async function saveCharacters(characters) {
     try {
         await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
     } catch (error) {
-        throw new Error('ꕥ No pudimos guardar los datos de characters.json.\n> ● *Intenta de nuevo más tarde.*')
+        throw new Error('❌ No pudimos guardar los datos de characters.json.\n> ● *Intenta de nuevo más tarde.*')
     }
 }
 
@@ -38,12 +53,14 @@ async function saveHarem(harem) {
 }
 
 let handler = async (m, { conn, args }) => {
+    if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+}
     const userId = m.sender
 
     if (args.length < 2) {
         await conn.sendMessage(m.chat, { 
-            text: 'ꕥ Debes especificar el nombre del personaje y mencionar a quién quieras regalarlo.\n> ● *Ejemplo ›* /regalar Aika Sano @usuario', 
-            ...global.rcanal 
+            text: '⚠️ Debes especificar el nombre del personaje y mencionar a quién quieras regalarlo.\n> ● *Ejemplo ›* /regalar Aika Sano @usuario'
         }, { quoted: m })
         return
     }
@@ -53,8 +70,7 @@ let handler = async (m, { conn, args }) => {
 
     if (!who) {
         await conn.sendMessage(m.chat, { 
-            text: 'ꕥ Debes mencionar a un usuario válido.\n> ● *Ejemplo ›* /regalar Aika Sano @usuario', 
-            ...global.rcanal 
+            text: '⚠️ Debes mencionar a un usuario válido.\n> ● *Ejemplo ›* /regalar Aika Sano @usuario'
         }, { quoted: m })
         return
     }
@@ -65,8 +81,7 @@ let handler = async (m, { conn, args }) => {
 
         if (!character) {
             await conn.sendMessage(m.chat, { 
-                text: `ꕥ El personaje *${characterName}* no está reclamado por ti.\n> ● *Usa /harem para ver tu lista.*`, 
-                ...global.rcanal 
+                text: `⚠️ El personaje *${characterName}* no está reclamado por ti.\n> ● *Usa /harem para ver tu lista.*`
             }, { quoted: m })
             return
         }
@@ -92,13 +107,11 @@ let handler = async (m, { conn, args }) => {
 
         await conn.sendMessage(m.chat, { 
             text: `ꕥ *${character.name}* ahora pertenece a @${who.split('@')[0]}!\n> ● *¡Que disfrute su nuevo/a waifu!*`, 
-            mentions: [who],
-            ...global.rcanal 
+            mentions: [who]
         }, { quoted: m })
     } catch (error) {
         await conn.sendMessage(m.chat, { 
-            text: `ꕥ No se pudo completar la acción.\n> ● *Error ›* ${error.message}`, 
-            ...global.rcanal 
+            text: `❌ No se pudo completar la acción.\n> ● *Error ›* ${error.message}`
         }, { quoted: m })
     }
 }
@@ -107,6 +120,5 @@ handler.help = ['regalar']
 handler.tags = ['gacha']
 handler.command = ['regalar', 'givewaifu', 'givechar']
 handler.group = false
-handler.register = true
 
 export default handler
