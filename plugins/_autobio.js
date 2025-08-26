@@ -33,7 +33,7 @@ let handler = async (m, { conn, args }) => {
       } catch (e) {
         console.error("Error actualizando bio:", e)
       }
-    }, 5 * 60 * 1000) // cada 5 minutos
+    }, 1 * 60 * 1000) // cada 5 minutos
 
     m.reply("✅ Auto-bio activado.")
   } else if (option === "off") {
