@@ -14,6 +14,7 @@ const handler = async (m, { text, command, args }) => {
 };
 
 handler.command = ['ruleta'];
+handler.tags = ['game']
 handler.group = true
 
 export default handler;
