@@ -1,4 +1,20 @@
 import axios from 'axios'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 class Web2Apk {
   constructor() {
@@ -74,6 +90,9 @@ class Web2Apk {
 }
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  }
   conn.web2apk = conn.web2apk || {}
   const id = m.chat
 
