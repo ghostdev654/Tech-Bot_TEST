@@ -75,12 +75,12 @@ const handler = async (m, { conn }) => {
   if (!/image|video/.test(mime)) {
     return conn.sendMessage(
       m.chat,
-      { text: `✿ Responde a una *imagen o video* para convertirlo en sticker\n`},
+      { text: `✳️ *Uso Correcto:*\n➤ Responde a una *imagen/video* con el comando `.s` para convertirlo en sticker.`},
       { quoted: m }
     )
   }
 
-  await m.react('🕒')
+  await m.react('⏳')
 
   try {
     const media = await q.download()
@@ -100,7 +100,7 @@ const handler = async (m, { conn }) => {
     await m.react('❌')
     await conn.sendMessage(
       m.chat,
-      { text: '╭─❀ *Error de Conversión* ❀─╮\n✘ No se pudo generar el sticker\n╰───────────────────────────╯'},
+      { text: '❌ No se pudo generar el sticker'},
       { quoted: m }
     )
   }
