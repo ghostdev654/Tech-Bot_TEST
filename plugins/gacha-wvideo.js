@@ -36,6 +36,9 @@ async function loadHarem() {
 }
 
 let handler = async (m, { conn, command, args }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  }
   if (!args.length) {
     return conn.sendMessage(m.chat, {
       text: `
