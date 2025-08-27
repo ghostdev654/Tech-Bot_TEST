@@ -1,5 +1,21 @@
 import axios from 'axios'
 import cheerio from 'cheerio'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 // 🌀 Función para mezclar resultados
 function shuffle(arr) {
@@ -58,14 +74,17 @@ async function mfsearch(query) {
 
 // 🎋 Handler del comando
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-  if (!text) return m.reply('🍁 *Usa el comando así:* .mediafiresearch config ff')
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+    }
+  if (!text) return m.reply('✳️ *Usa el comando así:* .mediafiresearch config ff')
 
   await m.reply('🦞 Buscando archivos en *Mediafire*...')
 
   try {
     let results = await mfsearch(text)
 
-    if (!results.length) return m.reply('🐥 No se encontró nada con esa búsqueda.')
+    if (!results.length) return m.reply('❌ No se encontró nada con esa búsqueda.')
 
     conn.mfsearch = conn.mfsearch || {}
     conn.mfsearch[m.sender] = {
@@ -81,11 +100,10 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     }))
 
     await conn.sendMessage(m.chat, {
-      text: `🎋 *Resultados para:* ${text}\n\n🪭 Archivos encontrados en Mediafire.\n🦁 Elige uno para descargar:`,
+      text: `🔎 *Resultados para:* ${text}\n\n🗂️ Archivos encontrados en Mediafire.\n🦁 Elige uno para descargar:`,
       footer: `🫟 Mostrando los 3 mejores de ${results.length} resultados`,
       buttons,
       headerType: 1,
-      ...global.rcanal 
     }, { quoted: m })
 
   } catch (e) {
