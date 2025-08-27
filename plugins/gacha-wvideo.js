@@ -1,5 +1,3 @@
-import { promises as fs } from 'fs'
-
 const charactersFilePath = './database/characters.json'
 const haremFilePath = './database/harem.json'
 import fs from 'fs'
