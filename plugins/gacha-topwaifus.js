@@ -1,4 +1,19 @@
-import { promises as fs } from 'fs';
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 const charactersFilePath = './database/characters.json';
 
@@ -7,11 +22,14 @@ async function loadCharacters() {
         const data = await fs.readFile(charactersFilePath, 'utf-8');
         return JSON.parse(data);
     } catch (error) {
-        throw new Error('《✧》No se pudo cargar el archivo characters.json.');
+        throw new Error('❌ No se pudo cargar el archivo characters.json.');
     }
 }
 
 let handler = async (m, { conn, args }) => {
+    if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+    }
     try {
         const characters = await loadCharacters();
         const page = parseInt(args[0]) || 1;
@@ -26,7 +44,7 @@ let handler = async (m, { conn, args }) => {
         const charactersToShow = sortedCharacters.slice(startIndex, endIndex);
 
         let message = `╭─────────────────
-│ *❀ TOP WAIFUS (❛◡❛)*
+│ * TOP WAIFUS*
 ├─────────────────\n`;
 
         charactersToShow.forEach((character, index) => {
@@ -47,6 +65,5 @@ handler.help = ['topwaifus'];
 handler.tags = ['gacha'];
 handler.command = ['topwaifus', 'waifustop', 'waifusboard'];
 handler.group = false;
-handler.register = true;
 
 export default handler;
