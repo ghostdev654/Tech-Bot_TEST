@@ -80,19 +80,10 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 ┃ 📌 Fuente: *YouTube*
 ╰━━━━━━━━━━━━━━━━━━━━━━`.trim()
 
-    await conn.sendMessage(m.chat, {
-      text: details,
-      contextInfo: {
-        externalAdReply: {
-          title: nombreBot,
-          body: '⏱️ Procesando...',
-          thumbnailUrl: thumbnail,
-          sourceUrl: 'https://whatsapp.com/channel/0029VbAgXGt7T8bYPVTZUW47',
-          mediaType: 1,
-          renderLargerThumbnail: true
-        }
-      }
-    }, { quoted: m })
+await conn.sendMessage(m.chat, {
+  image: { url: thumbnail }, // acá la foto directa
+  caption: details // el texto que quieras que acompañe
+}, { quoted: m })
 
     if (isAudio) {
       await conn.sendMessage(m.chat, {
