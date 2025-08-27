@@ -1,8 +1,27 @@
 // Editado y arreglado por github.com/Ado-rgb
 import axios from 'axios'
 import { generateWAMessageContent, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 const handler = async (m, { conn, text, command }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  }
   if (!text) {
     return conn.reply(
       m.chat,
@@ -11,8 +30,8 @@ const handler = async (m, { conn, text, command }) => {
     )
   }
 
-  await m.react('🕒')
-  await conn.reply(m.chat, '> Buscando imágenes, por favor espere...', m)
+  await m.react('⏳')
+  await conn.reply(m.chat, '> ⏱️ Buscando imágenes, por favor espere...', m)
 
   const apiUrl = `https://delirius-apiofc.vercel.app/search/wallpapers?q=${encodeURIComponent(text)}`
   try {
@@ -103,6 +122,5 @@ async function createImageMsg(url, conn) {
 handler.command = ['wallpaper']
 handler.help = ['wallpaper']
 handler.tags = ['search']
-handler.register = true
 
 export default handler
