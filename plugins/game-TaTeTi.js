@@ -1,9 +1,27 @@
 import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+  }
 
 let partidasTateti = {}
 const TURN_TIMEOUT = 40000 // 30 segundos ⏳
 
 let handler = async (m, { conn, args }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+      }
   let id = m.chat
 
   if (!partidasTateti[id]) {
@@ -22,7 +40,7 @@ let handler = async (m, { conn, args }) => {
 
     conn.reply(
       id,
-      renderBoard(partidasTateti[id].board) + `\n\n🎮 Turno de: @${playerX.split('@')[0]} (tienes 30s)`,
+      renderBoard(partidasTateti[id].board) + `\n\n🎮 Turno de: @${playerX.split('@')[0]}\n>(tienes 40s)`,
       m,
       { mentions: [playerX] }
     )
@@ -77,7 +95,7 @@ handler.before = async (m, { conn }) => {
   partida.turn = player === partida.players.X ? partida.players.O : partida.players.X
   conn.reply(
     id,
-    renderBoard(partida.board) + `\n\n🎮 Turno de: @${partida.turn.split('@')[0]} (tienes 30s)`,
+    renderBoard(partida.board) + `\n\n🎮 Turno de: @${partida.turn.split('@')[0]}\n> (tienes 40s)`,
     m,
     { mentions: [partida.turn] }
   )
