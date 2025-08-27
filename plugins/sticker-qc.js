@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import fluent_ffmpeg from 'fluent-ffmpeg'
@@ -6,6 +5,22 @@ import fetch from 'node-fetch'
 import { fileTypeFromBuffer } from 'file-type'
 import webp from 'node-webpmux'
 import axios from 'axios'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 const tmp = path.join(process.cwd(), 'tmp')
 if (!fs.existsSync(tmp)) fs.mkdirSync(tmp)
@@ -71,13 +86,16 @@ async function sticker(img, url, packname, author) {
 }
 
 const handler = async (m, { conn, args }) => {
+  if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  }
   let texto
   if (args.length >= 1) {
     texto = args.join(" ")
   } else if (m.quoted && m.quoted.text) {
     texto = m.quoted.text
   } else {
-    return m.reply("💬 Por favor escribe o responde a un texto para generar la cita")
+    return m.reply("⚠️ Por favor escribe o responde a un texto para generar la cita")
   }
 
   if (texto.length > 100) {
@@ -89,7 +107,7 @@ const handler = async (m, { conn, args }) => {
   let fotoPerfil = await conn.profilePictureUrl(quien, 'image').catch(_ => 'https://telegra.ph/file/320b066dc81928b782c7b.png')
 
   // Detectar si es subbot y leer nombre desde config.json
-  let nombrePack = global.packname || '✦ Michi - AI ✦'
+  let nombrePack = global.packname || 'Tech-Bot V1'
   try {
     const botActual = conn.user?.jid?.split('@')[0].replace(/\D/g, '')
     const configPath = path.join('./JadiBots', botActual, 'config.json')
@@ -101,7 +119,7 @@ const handler = async (m, { conn, args }) => {
     console.log('⚠️ No se pudo leer config del subbot:', err)
   }
 
-  await m.react('🕒')
+  await m.react('⏳')
 
   try {
     const datos = {
@@ -138,7 +156,7 @@ const handler = async (m, { conn, args }) => {
     await m.react('❌')
     await conn.sendMessage(
       m.chat,
-      { text: '╭─❀ *Error al generar la cita* ❀─╮\n✘ Intenta nuevamente\n╰───────────────────────────╯', ...global.rcanal },
+      { text: '❌ Error al generar el Sticker. Intenta nuevamente' },
       { quoted: m }
     )
   }
@@ -147,6 +165,5 @@ const handler = async (m, { conn, args }) => {
 handler.help = ['qc']
 handler.tags = ['sticker']
 handler.command = /^(qc|quotely)$/i
-handler.register = true
 
 export default handler
