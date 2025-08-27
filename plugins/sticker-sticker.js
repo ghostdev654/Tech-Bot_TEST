@@ -75,7 +75,7 @@ const handler = async (m, { conn }) => {
   if (!/image|video/.test(mime)) {
     return conn.sendMessage(
       m.chat,
-      { text: `✳️ *Uso Correcto:*\n➤ Responde a una *imagen/video* con el comando `.s` para convertirlo en sticker.`},
+      { text: `✳️ *Uso Correcto:*\n➤ Responde a una *imagen/video* con el comando \`.s\` para convertirlo en sticker.`},
       { quoted: m }
     )
   }
