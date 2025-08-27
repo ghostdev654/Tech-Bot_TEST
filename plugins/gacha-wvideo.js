@@ -2,13 +2,29 @@ import { promises as fs } from 'fs'
 
 const charactersFilePath = './database/characters.json'
 const haremFilePath = './database/harem.json'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 async function loadCharacters() {
   try {
     const data = await fs.readFile(charactersFilePath, 'utf-8')
     return JSON.parse(data)
   } catch (error) {
-    throw new Error('✎ No se pudo cargar el archivo *characters.json*.')
+    throw new Error('❌ No se pudo cargar el archivo *characters.json*.')
   }
 }
 
@@ -25,10 +41,9 @@ let handler = async (m, { conn, command, args }) => {
   if (!args.length) {
     return conn.sendMessage(m.chat, {
       text: `
-ꕥ Debes proporcionar el nombre de un personaje
-> ● *Ejemplo ›* ${command} Roxy Migurdia
-`.trim(),
-      ...global.rcanal
+⚠️ Debes proporcionar el nombre de un personaje
+> ✳️ *Ejemplo ›* ${command} Roxy Migurdia
+`.trim()
     }, { quoted: m })
   }
 
@@ -41,20 +56,18 @@ let handler = async (m, { conn, command, args }) => {
     if (!character) {
       return conn.sendMessage(m.chat, {
         text: `
-✎ No se encontró › *${characterName}*
+❌ No se encontró › *${characterName}*
 > ❒ Verifica que el nombre esté correcto
-`.trim(),
-        ...global.rcanal
+`.trim()
       }, { quoted: m })
     }
 
     if (!character.vid || !character.vid.length) {
       return conn.sendMessage(m.chat, {
         text: `
-✎ No hay videos registrados para › *${character.name}*
+❌ No hay videos registrados para › *${character.name}*
 > ❒ Intenta con otro personaje
-`.trim(),
-        ...global.rcanal
+`.trim()
       }, { quoted: m })
     }
 
@@ -69,8 +82,7 @@ let handler = async (m, { conn, command, args }) => {
     await conn.sendMessage(m.chat, {
       video: { url: randomVideo },
       gifPlayback: sendAsGif,
-      caption,
-      ...global.rcanal
+      caption
     }, { quoted: m })
 
   } catch (error) {
@@ -78,8 +90,7 @@ let handler = async (m, { conn, command, args }) => {
       text: `
 ✘ Error al cargar el video › ${error.message}
 > ❒ Intenta de nuevo más tarde
-`.trim(),
-      ...global.rcanal
+`.trim()
     }, { quoted: m })
   }
 }
@@ -87,6 +98,5 @@ let handler = async (m, { conn, command, args }) => {
 handler.help = ['wvideo']
 handler.tags = ['gacha']
 handler.command = ['charvideo', 'wvideo', 'waifuvideo']
-handler.register = true
 
 export default handler
