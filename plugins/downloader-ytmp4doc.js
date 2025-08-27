@@ -6,14 +6,14 @@ import path from 'path'
 let handler = async (m, { conn, text, usedPrefix, command, args }) => {
   try {
     if (!text) {
-      return conn.reply(m.chat, `*Por favor, ingresa la URL del vídeo de YouTube.*`, m)
+      return conn.reply(m.chat, `❇️ *Por favor, ingresa la URL del vídeo de YouTube.*`, m)
     }
 
     if (!/^(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?/.test(args[0])) {
       return m.reply(`*⚠️ Enlace inválido, por favor coloca un enlace válido de YouTube.*`)
     }
 
-    m.react('🕒')
+    m.react('⏳')
 
     const json = await ytdl(args[0])
     const size = await getSize(json.url)
@@ -33,13 +33,13 @@ let handler = async (m, { conn, text, usedPrefix, command, args }) => {
       }
     }
 
-    const cap = `*${json.title}*\n≡ *🍫 URL:* ${args[0]}\n≡ *🔥 Peso:* ${sizeStr}\n\n> Send by: ${nombreBot}`
+    const cap = `*${json.title}*\n*📎 URL:* ${args[0]}\n*📂 Peso:* ${sizeStr}\n\n> Send by: ${nombreBot}`
 
     conn.sendFile(m.chat, await (await fetch(json.url)).buffer(), `${json.title}.mp4`, cap, m)
     m.react('✅')
   } catch (e) {
     console.error(e)
-    m.reply(`Ocurrió un error:\n${e.message}`)
+    m.reply(`❌ Ocurrió un error:\n${e.message}`)
   }
 }
 
