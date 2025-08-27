@@ -3,11 +3,68 @@ import yts from 'yt-search'
 import fs from 'fs'
 import path from 'path'
 
+const premiumFile = './json/premium.json'
+const limitsFile = './json/limits.json'
+
+// asegurar archivos
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]))
+if (!fs.existsSync(limitsFile)) fs.writeFileSync(limitsFile, JSON.stringify({}))
+
+// verifica si el bot es premium
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0]?.replace(/\D/g, '')
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
+
+// controla límites
+function checkLimit(conn) {
+  const botId = conn?.user?.id?.split(':')[0]?.replace(/\D/g, '')
+  if (!botId) return { allowed: false, remaining: 0 }
+
+  let limits = JSON.parse(fs.readFileSync(limitsFile, 'utf-8'))
+  let now = Date.now()
+
+  if (!limits[botId]) {
+    limits[botId] = { count: 0, resetAt: now + 5 * 60 * 60 * 1000 } // 5h
+  }
+
+  // reset si pasó el tiempo
+  if (now > limits[botId].resetAt) {
+    limits[botId] = { count: 0, resetAt: now + 5 * 60 * 60 * 1000 }
+  }
+
+  // si aún tiene límite
+  if (limits[botId].count < 10) {
+    limits[botId].count++
+    fs.writeFileSync(limitsFile, JSON.stringify(limits, null, 2))
+    return { allowed: true, remaining: 10 - limits[botId].count, resetAt: limits[botId].resetAt }
+  } else {
+    return { allowed: false, remaining: 0, resetAt: limits[botId].resetAt }
+  }
+}
+
 let handler = async (m, { conn, args, command, usedPrefix }) => {
   if (!args[0]) return m.reply(`✳️ *Uso correcto:*\n${usedPrefix + command} <enlace o nombre>`)
 
   try {
     await m.react('⏳')
+
+    // 🔑 check premium
+    let premium = isBotPremium(conn)
+    if (!premium) {
+      let check = checkLimit(conn)
+      if (!check.allowed) {
+        let mins = Math.ceil((check.resetAt - Date.now()) / 60000)
+        return m.reply(`⛔ Este bot no es Premium.\n\nHas alcanzado el límite de *10 descargas*.\n⌛ Intenta de nuevo en *${mins} minutos*.`)
+      } else {
+        console.log(`Bot normal → le quedan ${check.remaining} descargas.`)
+      }
+    }
 
     const botActual = conn.user?.jid?.split('@')[0].replace(/\D/g, '')
     const configPath = path.join('./JadiBots', botActual, 'config.json')
@@ -26,9 +83,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
       let search = await yts(args.join(' '))
       if (!search.videos || search.videos.length === 0) {
-        await conn.sendMessage(m.chat, {
-          text: '⚠️ No se encontraron resultados.'
-        }, { quoted: m })
+        await conn.sendMessage(m.chat, { text: '⚠️ No se encontraron resultados.' }, { quoted: m })
         return
       }
       videoInfo = search.videos[0]
@@ -80,10 +135,10 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 ┃ 📌 Fuente: *YouTube*
 ╰━━━━━━━━━━━━━━━━━━`.trim()
 
-await conn.sendMessage(m.chat, {
-  image: { url: thumbnail }, // acá la foto directa
-  caption: details // el texto que quieras que acompañe
-}, { quoted: m })
+    await conn.sendMessage(m.chat, {
+      image: { url: thumbnail },
+      caption: details
+    }, { quoted: m })
 
     if (isAudio) {
       await conn.sendMessage(m.chat, {
