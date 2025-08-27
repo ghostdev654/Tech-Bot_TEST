@@ -147,9 +147,9 @@ const handler = async (m, { conn, args }) => {
     })
 
     const imgBuffer = Buffer.from(res.data.result.image, 'base64')
-    const stiker = await sticker(imgBuffer, false, nombrePack, global.author || '© Made with ☁︎ Wirk ✧')
+    const stiker = await sticker(imgBuffer, false, nombrePack, global.author || '© ghostdev.js')
 
-    await conn.sendMessage(m.chat, { sticker: stiker, ...global.rcanal }, { quoted: m })
+    await conn.sendMessage(m.chat, { sticker: stiker }, { quoted: m })
     await m.react('✅')
   } catch (e) {
     console.error(e)
