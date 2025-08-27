@@ -1,4 +1,3 @@
-import { promises as fs } from 'fs';
 import fs from 'fs'
 const premiumFile = './json/premium.json'
 
