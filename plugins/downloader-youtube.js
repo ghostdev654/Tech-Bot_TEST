@@ -78,7 +78,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
 ┃ ❇️ Formato: *${isAudio ? 'Audio' : 'Video'}*
 ┃
 ┃ 📌 Fuente: *YouTube*
-╰`.trim()
+╰━━━━━━━━━━━━━━━━━━━━━━`.trim()
 
     await conn.sendMessage(m.chat, {
       text: details,
