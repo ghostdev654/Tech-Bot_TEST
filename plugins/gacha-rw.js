@@ -1,4 +1,19 @@
-import { promises as fs } from 'fs'
+import fs from 'fs'
+const premiumFile = './json/premium.json'
+
+// Aseguramos archivo
+if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+
+// Función de verificación
+function isBotPremium(conn) {
+  try {
+    let data = JSON.parse(fs.readFileSync(premiumFile))
+    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
+    return data.includes(botId)
+  } catch {
+    return false
+  }
+}
 
 const charactersFilePath = './database/characters.json'
 const haremFilePath = './database/harem.json'
@@ -10,7 +25,7 @@ async function loadCharacters() {
         const data = await fs.readFile(charactersFilePath, 'utf-8')
         return JSON.parse(data)
     } catch (error) {
-        throw new Error('❀ No se pudo cargar el archivo characters.json.')
+        throw new Error('❌ No se pudo cargar el archivo characters.json.')
     }
 }
 
@@ -18,7 +33,7 @@ async function saveCharacters(characters) {
     try {
         await fs.writeFile(charactersFilePath, JSON.stringify(characters, null, 2), 'utf-8')
     } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo characters.json.')
+        throw new Error('❌ No se pudo guardar el archivo characters.json.')
     }
 }
 
@@ -35,11 +50,14 @@ async function saveHarem(harem) {
     try {
         await fs.writeFile(haremFilePath, JSON.stringify(harem, null, 2), 'utf-8')
     } catch (error) {
-        throw new Error('❀ No se pudo guardar el archivo harem.json.')
+        throw new Error('❌ No se pudo guardar el archivo harem.json.')
     }
 }
 
 let handler = async (m, { conn }) => {
+    if (!isBotPremium(conn)) {
+    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+    }
     const userId = m.sender
     const now = Date.now()
 
@@ -47,7 +65,7 @@ let handler = async (m, { conn }) => {
         const remainingTime = Math.ceil((cooldowns[userId] - now) / 1000)
         const minutes = Math.floor(remainingTime / 60)
         const seconds = remainingTime % 60
-        return await conn.reply(m.chat, `《✧》Por favor espera *${minutes} minutos y ${seconds} segundos* antes de volver a utilizar el comando *#rw*.`, m)
+        return await conn.reply(m.chat, `✳️ Por favor espera *${minutes}m y ${seconds}s* antes de volver a utilizar el comando *#rw*.`, m)
     }
 
     try {
@@ -61,12 +79,12 @@ let handler = async (m, { conn }) => {
             ? `Reclamado por @${randomCharacter.user.split('@')[0]}` 
             : 'Libre'
 
-        const message = `> ☄︎ Nombre *»* *${randomCharacter.name}*
-> ᥫ᭡ Género *»* *${randomCharacter.gender}*
-> ✰ Valor *»* *${randomCharacter.value}*
-> ᰔᩚ Estado *»* ${statusMessage}
-> ✿ Fuente *»* *${randomCharacter.source}*
-> ✦ ID: *${randomCharacter.id}*`
+        const message = `> 👤 Nombre *»* *${randomCharacter.name}*
+> ✴️ Género *»* *${randomCharacter.gender}*
+> 💲 Valor *»* *${randomCharacter.value}*
+> 📨 Estado *»* ${statusMessage}
+> 📌 Fuente *»* *${randomCharacter.source}*
+> 🔢 ID: *${randomCharacter.id}*`
 
         const mentions = userEntry ? [userEntry.userId] : []
         await conn.sendFile(m.chat, randomImage, `${randomCharacter.name}.jpg`, message, m, { mentions })
@@ -78,14 +96,13 @@ let handler = async (m, { conn }) => {
         cooldowns[userId] = now + 15 * 60 * 1000
 
     } catch (error) {
-        await conn.reply(m.chat, `✘ Error al cargar el personaje: ${error.message}`, m)
+        await conn.reply(m.chat, `❌ Error al cargar el personaje: ${error.message}`, m)
     }
 }
 
 handler.help = ['rw']
 handler.tags = ['gacha']
-handler.command = ['ver', 'rw', 'rollwaifu']
+handler.command = ['rw', 'rollwaifu']
 handler.group = false
-handler.register = true
 export default handler
       
