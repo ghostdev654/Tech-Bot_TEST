@@ -18,7 +18,7 @@ const handler = async (msg, { conn }) => {
   }, { quoted: msg })
 }
 
-handler.command = ['=> m.quoted']
+handler.command = ['=>m.quoted']
 handler.group = true
 handler.private = false
 
