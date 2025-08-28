@@ -1,25 +1,54 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
-const premiumFile = './json/premium.json'
+
+const usageFile = './json/limtsFb.json'
 
 // Aseguramos archivo
-if (!fs.existsSync(premiumFile)) fs.writeFileSync(premiumFile, JSON.stringify([]), 'utf-8')
+if (!fs.existsSync(usageFile)) fs.writeFileSync(usageFile, JSON.stringify({}), 'utf-8')
 
-// Función de verificación
-function isBotPremium(conn) {
-  try {
-    let data = JSON.parse(fs.readFileSync(premiumFile))
-    let botId = conn?.user?.id?.split(':')[0] // extraemos el numérico del JID
-    return data.includes(botId)
-  } catch {
-    return false
+// Limite
+const LIMIT = 10
+const COOLDOWN = 5 * 60 * 60 * 1000 // 5 horas en ms
+
+// Función para verificar/actualizar usos
+function checkLimit(user) {
+  let data = JSON.parse(fs.readFileSync(usageFile))
+  let now = Date.now()
+
+  if (!data[user]) {
+    data[user] = { count: 0, lastReset: now }
   }
+
+  let entry = data[user]
+
+  // Reset si pasaron más de 5hs
+  if (now - entry.lastReset > COOLDOWN) {
+    entry.count = 0
+    entry.lastReset = now
+  }
+
+  if (entry.count >= LIMIT) {
+    fs.writeFileSync(usageFile, JSON.stringify(data, null, 2))
+    let restante = Math.ceil((COOLDOWN - (now - entry.lastReset)) / (60 * 1000))
+    return { ok: false, restante }
+  }
+
+  entry.count++
+  data[user] = entry
+  fs.writeFileSync(usageFile, JSON.stringify(data, null, 2))
+
+  return { ok: true }
 }
 
 let handler = async (m, { conn, args, usedPrefix, command }) => {
-  if (!isBotPremium(conn)) {
-    return m.reply('⚠️ *Se necesita que el bot sea premium.*\n> Usa *_.buyprem_* para activarlo.')
+  let user = m.sender
+
+  // Verificar límite
+  let check = checkLimit(user)
+  if (!check.ok) {
+    return m.reply(`⚠️ Has alcanzado el límite de *${LIMIT} descargas*.\n\n⏳ Intenta nuevamente en *${check.restante} minutos*.`)
   }
+
   if (!args[0]) return m.reply(
     `⚠️ Uso correcto:
 ${usedPrefix + command} <enlace válido de Facebook>
