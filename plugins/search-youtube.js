@@ -4,8 +4,7 @@ import path from 'path'
 
 let handler = async (m, { conn, usedPrefix, text, command }) => {
   if (!text) return conn.sendMessage(m.chat, {
-    text: `ꕥ Debes escribir algo para buscar en YouTube.\n> ● *Ejemplo ›* ${usedPrefix + command} lofi anime`,
-    ...global.rcanal
+    text: `⚠️ Debes escribir algo para buscar en YouTube.\n> ● *Ejemplo ›* ${usedPrefix + command} Daft Punk`
   }, { quoted: m })
 
   await m.react('🔍')
@@ -13,7 +12,7 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
   // Nombre del bot o subbot
   const botJid = conn.user?.jid?.split('@')[0].replace(/\D/g, '')
   const configPath = path.join('./JadiBots', botJid, 'config.json')
-  let nombreBot = global.namebot || '❀ Mai-Bot ❀'
+  let nombreBot = global.namebot || 'Tech-Bot'
   if (fs.existsSync(configPath)) {
     try {
       const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
@@ -31,8 +30,7 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
 
     if (!videos.length) {
       await conn.sendMessage(m.chat, {
-        text: `✘ No encontré nada sobre *${text}*.\n> ● Intenta con otras palabras clave.`,
-        ...global.rcanal
+        text: `❌ No encontré nada sobre *${text}*.\n> Intenta con otras palabras clave.`
       }, { quoted: m })
       await m.react('❌')
       return
@@ -42,12 +40,12 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
 
     for (let i = 0; i < videos.length; i++) {
       const video = videos[i]
-      caption += `*${i + 1}.* ✩ *${video.title}*\n\n`
-      caption += `✿ Descripción › *${video.description?.slice(0, 100) || 'Sin descripción'}*\n`
-      caption += `🜲 Autor › *${video.author.name}*\n\n`
-      caption += `✰ Duración › *${video.timestamp}*\n\n`
-      caption += `❒ Publicado el › *${video.ago}*\n\n`
-      caption += `⌦ Link › ${video.url}\n\n`
+      caption += `*${i + 1}.* 📀 *${video.title}*\n\n`
+      caption += `📌 Descripción › *${video.description?.slice(0, 100) || 'Sin descripción'}*\n`
+      caption += `👤 Autor › *${video.author.name}*\n\n`
+      caption += `⏱️ Duración › *${video.timestamp}*\n\n`
+      caption += `📆 Publicado el › *${video.ago}*\n\n`
+      caption += `📎 Link › ${video.url}\n\n`
     }
 
     caption += `╰─「 ${nombreBot} 」`
@@ -59,8 +57,7 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
     await conn.sendMessage(m.chat, {
       ...messagePayload,
       caption: caption.trim(),
-      mentions: conn.parseMention(caption),
-      ...global.rcanal
+      mentions: conn.parseMention(caption)
     }, { quoted: m })
 
     await m.react('✅')
@@ -68,16 +65,14 @@ let handler = async (m, { conn, usedPrefix, text, command }) => {
   } catch (e) {
     console.error(e)
     await conn.sendMessage(m.chat, {
-      text: `✘ Ocurrió un error al buscar tu consulta.\n> ● Intenta más tarde.`,
-      ...global.rcanal
+      text: `❌ Ocurrió un error al buscar tu consulta.\n> Intenta más tarde.`
     }, { quoted: m })
-    await m.react('💥')
+    await m.react('❌')
   }
 }
 
 handler.tags = ['search']
 handler.help = ['ytsearch']
 handler.command = ['ytsearch', 'yts', 'youtubesearch']
-handler.register = true
 
 export default handler
