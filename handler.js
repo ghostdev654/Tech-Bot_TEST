@@ -564,20 +564,20 @@ global.dfail = (type, m, conn, usedPrefix, command) => { // 'conn' es el tercer 
     let verifyaleatorio = ['registrar', 'reg', 'verificar', 'verify', 'register'].getRandom()
 
     const msg = {
-    rowner: '🔐 Solo el Creador del Bot puede usar este comando.',
-    owner: '👑 Solo el Creador y Sub Bots pueden usar este comando.',
-    mods: '🛡️ Solo los Moderadores pueden usar este comando.',
+    rowner: '❌ *𝚂𝚘𝚕𝚘 𝚎𝚕 𝙾𝚠𝚗𝚎𝚛 𝚍𝚎𝚕 𝚋𝚘𝚝 𝚙𝚞𝚎𝚍𝚎 𝚞𝚝𝚒𝚕𝚒𝚣𝚊𝚛 𝚎𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘.*',
+    owner: '❌ *𝚂𝚘𝚕𝚘 𝚂𝚞𝚋-𝙱𝚘𝚝𝚜 𝚘 𝚎𝚕 𝙾𝚠𝚗𝚎𝚛 𝚙𝚞𝚎𝚍𝚎𝚗 𝚞𝚜𝚊𝚛 𝚎𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘.*',
+    mods: '❌ *𝚂𝚘𝚕𝚘 𝚖𝚘𝚍𝚎𝚛𝚊𝚍𝚘𝚛𝚎𝚜 𝚙𝚞𝚎𝚍𝚎𝚗 𝚞𝚜𝚊𝚛 𝚎𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘.*',
     premium: '💎 Solo usuarios Premium pueden usar este comando.',
-    group: '「✧」 Este comando es sólo para grupos.',
-    private: '🔒 Solo en Chat Privado puedes usar este comando.',
-    admin: '⚔️ Solo los Admins del Grupo pueden usar este comando.',
-    botAdmin: 'El bot debe ser Admin para ejecutar esto.',
-    unreg: '> 🔰 Debes estar Registrado para usar este comando.\n\n Ejemplo : #reg Ado.55',
+    group: '❌ *𝙴𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘 𝚜𝚘𝚕𝚘 𝚙𝚞𝚎𝚍𝚎 𝚞𝚜𝚊𝚛𝚜𝚎 𝚎𝚗 𝚐𝚛𝚞𝚙𝚘𝚜.*',
+    private: '❌ *𝙴𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘 𝚜𝚘𝚕𝚘 𝚙𝚞𝚎𝚍𝚎 𝚞𝚜𝚊𝚛𝚜𝚎 𝚎𝚗 𝚌𝚑𝚊𝚝𝚜 𝚙𝚛𝚒𝚟𝚊𝚍𝚘𝚜.*',
+    admin: '❌ *𝙴𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘 𝚜𝚘𝚕𝚘 𝚙𝚞𝚎𝚍𝚎 𝚜𝚎𝚛 𝚞𝚝𝚒𝚕𝚒𝚣𝚊𝚍𝚘 𝚙𝚘𝚛 𝙰𝚍𝚖𝚒𝚗𝚜.*',
+    botAdmin: '❌ *𝙿𝚊𝚛𝚊 𝚎𝚓𝚎𝚌𝚞𝚝𝚊𝚛 𝚎𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘, 𝚎𝚜 𝚗𝚎𝚌𝚎𝚜𝚊𝚛𝚒𝚘 𝚚𝚞𝚎 𝚜𝚎𝚊 𝙰𝚍𝚖𝚒𝚗.*',
+    unreg: '❌ *𝙳𝚎𝚋𝚎𝚜 𝚎𝚜𝚝𝚊𝚛 𝚛𝚎𝚐𝚒𝚜𝚝𝚛𝚊𝚍𝚘 𝚙𝚊𝚛𝚊 𝚞𝚜𝚊𝚛 𝚎𝚜𝚝𝚎 𝚌𝚘𝚖𝚊𝚗𝚍𝚘.*\n\n> Ej: *#reg _Luis Fernando.18_*',
     restrict: '⛔ Esta función está deshabilitada.'
     }[type];
 
     if (msg)
-        return conn.reply(m.chat, msg, m, { contextInfo: rcanal }).then(() => conn.sendMessage(m.chat, { react: { text: '✖️', key: m.key } }))
+        return conn.reply(m.chat, msg, m, { contextInfo: rcanal }).then(() => conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } }))
 
     let file = global.__filename(import.meta.url, true)
     watchFile(file, async () => {
