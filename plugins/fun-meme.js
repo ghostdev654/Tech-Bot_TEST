@@ -7,22 +7,19 @@ const handler = async (m, { conn }) => {
 
     if (!memeUrl) {
       return conn.sendMessage(m.chat, {
-        text: '❌ No se pudo obtener el meme.',
-        ...global.rcanal
+        text: '❌ No se pudo obtener el meme.'
       }, { quoted: m })
     }
 
     await conn.sendMessage(m.chat, {
       image: { url: memeUrl },
-      caption: `> ✿ *Aqui tienes*`,
-      ...global.rcanal
+      caption: `✳️ *Aqui tienes*`
     }, { quoted: m })
 
   } catch (e) {
     console.error(e)
     await conn.sendMessage(m.chat, {
-      text: '⚠️ Hubo un error al intentar obtener el meme.',
-      ...global.rcanal
+      text: '⚠️ Hubo un error al intentar obtener el meme.'
     }, { quoted: m })
   }
 }
