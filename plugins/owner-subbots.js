@@ -37,20 +37,9 @@ handler.rowner= true
 
 // Middleware: decide si el bot debe ignorar un mensaje
 handler.before = async function (m, { conn }) {
-  if (!m.isGroup) return false
-
-  // si subbots no está activado en este grupo, sigue normal
-  if (!db[m.chat]?.enabled) return false
-
-  // número actual del bot
-  let thisBot = conn.user.jid.split('@')[0]
-
-  // si este bot no es el primario → ignorar TODO
-  if (thisBot !== PRIMARY_NUMBER) {
-    // devuelve null o undefined para que el handler principal no se ejecute
-    return null
+  if (!m.isGroup) return
+  if (db[m.chat]?.enabled) {
+    let thisBot = conn.user.jid.split('@')[0]
+    if (thisBot !== PRIMARY_NUMBER) return true // 🔪 ignora todo
   }
-
-  // si es el primario, sigue funcionando
-  return false
 }
