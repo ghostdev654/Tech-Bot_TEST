@@ -1,6 +1,9 @@
 import fetch from 'node-fetch'
 
+const cooldown = new Map()
+
 let handler = async (m, { conn, args, usedPrefix, command }) => {
+  // Verificar enlace
   if (!args[0]) return m.reply(
     `📥 Uso correcto:
 ${usedPrefix + command} <enlace válido de TikTok>
@@ -9,6 +12,39 @@ Ejemplo:
 ${usedPrefix + command} https://www.tiktok.com/@usuario/video/123456789`
   )
 
+  // --- Límite de 10 usos cada 5 horas ---
+  const user = m.sender
+  const now = Date.now()
+  const limit = 10
+  const timeLimit = 5 * 60 * 60 * 1000 // 5 horas en ms
+
+  if (!cooldown.has(user)) {
+    cooldown.set(user, { count: 0, lastReset: now })
+  }
+
+  let userData = cooldown.get(user)
+
+  if (now - userData.lastReset > timeLimit) {
+    // Reset después de 5h
+    userData.count = 0
+    userData.lastReset = now
+  }
+
+  if (userData.count >= limit) {
+    let restante = timeLimit - (now - userData.lastReset)
+    let horas = Math.floor(restante / (1000 * 60 * 60))
+    let minutos = Math.floor((restante % (1000 * 60 * 60)) / (1000 * 60))
+
+    return m.reply(
+      `⏳ Has alcanzado el límite de *${limit} descargas* en ${command.toUpperCase()}.\n` +
+      `Vuelve a intentarlo en *${horas}h ${minutos}m*.`
+    )
+  }
+
+  userData.count++
+  cooldown.set(user, userData)
+
+  // --- Lógica principal ---
   try {
     await conn.sendMessage(m.chat, { react: { text: '🕒', key: m.key } })
 
