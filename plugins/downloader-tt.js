@@ -46,7 +46,7 @@ ${usedPrefix + command} https://www.tiktok.com/@usuario/video/123456789`
 
   // --- Lógica principal ---
   try {
-    await conn.sendMessage(m.chat, { react: { text: '🕒', key: m.key } })
+    await conn.sendMessage(m.chat, { react: { text: '⏳', key: m.key } })
 
     let apiURL = `https://myapiadonix.vercel.app/api/tiktok?url=${encodeURIComponent(args[0])}`
     let response = await fetch(apiURL)
