@@ -39,15 +39,18 @@ handler.rowner= true
 handler.before = async function (m, { conn }) {
   if (!m.isGroup) return false
 
-  // Revisamos la configuración del grupo
-  const groupConfig = db[m.chat]
-  if (!groupConfig?.enabled) return false // si no está activado, no ignora
+  // si subbots no está activado en este grupo, sigue normal
+  if (!db[m.chat]?.enabled) return false
 
-  // Número de este bot
+  // número actual del bot
   let thisBot = conn.user.jid.split('@')[0]
 
-  // Solo el primario responde, los demás ignoran
-  return thisBot !== PRIMARY_NUMBER
-}
+  // si este bot no es el primario → ignorar TODO
+  if (thisBot !== PRIMARY_NUMBER) {
+    // devuelve null o undefined para que el handler principal no se ejecute
+    return null
+  }
 
-export default handler
+  // si es el primario, sigue funcionando
+  return false
+}
