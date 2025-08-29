@@ -7,22 +7,13 @@ const handler = async (m, { conn, args }) => {
     const senderNum = senderJid.replace(/[^0-9]/g, "")
     const botNumber = conn.user?.id.split(":")[0].replace(/[^0-9]/g, "")
 
-    if (!chatId.endsWith('@g.us')) {
-      await conn.sendMessage(chatId, { text: '⚠️ Este comando solo se puede usar en grupos.' }, { quoted: m })
-      return
-    }
-
+  
     const metadata = await conn.groupMetadata(chatId)
     const participant = metadata.participants.find(p => p.id.includes(senderNum))
     const isAdmin = participant?.admin === 'admin' || participant?.admin === 'superadmin'
     const isBot = botNumber === senderNum
 
-    if (!isAdmin && !isBot) {
-      return await conn.sendMessage(chatId, {
-        text: '❌ Solo los administradores del grupo o el bot pueden usar este comando.'
-      }, { quoted: m })
-    }
-
+    
     const allMentions = metadata.participants.map(p => p.id)
     let messageToForward = null
     let hasMedia = false
@@ -102,5 +93,7 @@ handler.command = ['tag']
 handler.help = ['tag']
 handler.tags = ['group']
 handler.group = true
+handler.admin = true
+handler.botAdmin = true
 
 export default handler
