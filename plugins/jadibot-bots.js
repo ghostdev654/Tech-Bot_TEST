@@ -39,7 +39,7 @@ let handler = async (m, { conn }) => {
   const totalUsers = uniqueUsers.size
 
   let txt = `*𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 🔹𝐕𝟏 -- _Sub-Bots_*\n\n`
-  txt += `⏳ *Tiempo Activo:* ${formatUptime}\n`
+  txt += `⏳ *Runtime:* ${formatUptime}\n`
   txt += `👥 *Total Conectados:* ${totalUsers}\n`
 
   let mentions = []
