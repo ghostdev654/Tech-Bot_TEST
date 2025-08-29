@@ -1,9 +1,18 @@
+import fs from 'fs'
 import ws from 'ws'
 
 let handler = async (m, { conn }) => {
   let uniqueUsers = new Map()
 
   if (!global.conns || !Array.isArray(global.conns)) global.conns = []
+
+  // Cargar lista de premium
+  let premium = []
+  try {
+    premium = JSON.parse(fs.readFileSync('./json/premium.json'))
+  } catch {
+    premium = []
+  }
 
   for (const connSub of global.conns) {
     if (connSub.user && connSub.ws?.socket?.readyState !== ws.CLOSED) {
@@ -17,7 +26,11 @@ let handler = async (m, { conn }) => {
           nombre = `Usuario ${numero}`
         }
       }
-      uniqueUsers.set(jid, nombre || `Usuario ${numero}`)
+      uniqueUsers.set(jid, {
+        nombre: nombre || `Usuario ${numero}`,
+        numero,
+        isPremium: premium.includes(numero)
+      })
     }
   }
 
@@ -25,26 +38,29 @@ let handler = async (m, { conn }) => {
   const formatUptime = clockString(uptime)
   const totalUsers = uniqueUsers.size
 
-  let txt = `🌟 *SUBS ACTIVOS* 🌟\n\n`
+  let txt = `*𝙏𝙚𝙘𝙝-𝘽𝙤𝙩 🔹𝐕𝟏 -- _Sub-Bots_*\n\n`
   txt += `⏳ *Tiempo Activo:* ${formatUptime}\n`
   txt += `👥 *Total Conectados:* ${totalUsers}\n`
 
+  let mentions = []
+
   if (totalUsers > 0) {
-    txt += `\n📋 *LISTA DE SUBS*\n\n`
+    txt += `\n📋 *LISTA DE SUBBOTS*\n\n`
     let i = 1
-    for (const [jid, nombre] of uniqueUsers) {
-      const numero = jid.split('@')[0]
-      txt += `💎 *${i++}.* ${nombre}\n`
-      txt += `🔗 https://wa.me/${numero}\n\n`
+    for (const [jid, data] of uniqueUsers) {
+      txt += `📌 *${i++}.* ${data.nombre}\n`
+      txt += `👤 @${data.numero}\n`
+      txt += `⭐ Tipo: ${data.isPremium ? '🌟 Premium' : '🆓 Free'}\n\n`
+      mentions.push(jid)
     }
   } else {
     txt += `\n⚠️ *No hay subbots conectados actualmente.*`
   }
 
-  await conn.reply(m.chat, txt.trim(), m, global.rcanal)
+  await conn.reply(m.chat, txt.trim(), m, { mentions })
 }
 
-handler.command = ['listjadibot', 'bots']
+handler.command = ['listjadibot', 'bots', 'subbots']
 handler.help = ['bots']
 handler.tags = ['serbot']
 handler.register = true
