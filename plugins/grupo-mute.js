@@ -1,5 +1,24 @@
+import fs from "fs"
+
+const FILE = "./mutes.json"
+
+// función para cargar
+function loadMutes() {
+  if (!fs.existsSync(FILE)) fs.writeFileSync(FILE, JSON.stringify({}, null, 2))
+  return JSON.parse(fs.readFileSync(FILE))
+}
+
+// función para guardar
+function saveMutes(db) {
+  fs.writeFileSync(FILE, JSON.stringify(db, null, 2))
+}
+
 let handler = async (m, { conn, command, text }) => {
+  if (!m.isGroup) return m.reply("📌 Este comando solo funciona en grupos.")
   if (!text && !m.mentionedJid[0] && !m.quoted) return m.reply(`⚠️ Usa: .${command} @user / número / reply`)
+
+  // cargar base
+  let db = loadMutes()
 
   // obtener el ID del user
   let user = m.mentionedJid[0] 
@@ -8,38 +27,39 @@ let handler = async (m, { conn, command, text }) => {
       ? m.quoted.sender 
       : text.replace(/[^0-9]/g, '') + "@s.whatsapp.net"
 
-  if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-  if (!global.db.data.chats[m.chat].muted) global.db.data.chats[m.chat].muted = []
+  if (!db[m.chat]) db[m.chat] = []
 
   if (command == "mute") {
-    if (global.db.data.chats[m.chat].muted.includes(user)) 
+    if (db[m.chat].includes(user)) 
       return m.reply(`⚠️ El usuario ya estaba muteado.`)
-    
-    global.db.data.chats[m.chat].muted.push(user)
+
+    db[m.chat].push(user)
+    saveMutes(db)
     m.reply(`🔇 Usuario @${user.split('@')[0]} muteado.`, null, { mentions: [user] })
   } 
 
   if (command == "unmute") {
-    if (!global.db.data.chats[m.chat].muted.includes(user)) 
+    if (!db[m.chat].includes(user)) 
       return m.reply(`⚠️ El usuario no estaba muteado.`)
-    
-    global.db.data.chats[m.chat].muted = global.db.data.chats[m.chat].muted.filter(u => u !== user)
+
+    db[m.chat] = db[m.chat].filter(u => u !== user)
+    saveMutes(db)
     m.reply(`🔊 Usuario @${user.split('@')[0]} desmuteado.`, null, { mentions: [user] })
   }
 }
 
-handler.help = ["mute", "unmute"].map(v => v + " @user")
+handler.help = ["mute", "unmute"]
 handler.tags = ["group"]
 handler.command = /^(mute|unmute)$/i
 handler.group = true
 handler.admin = true
 
-// middleware dentro del mismo plugin
+// middleware dentro del mismo plugin pero ahora leyendo JSON
 handler.before = async (m, { conn }) => {
   if (!m.isGroup) return
-  let chat = global.db.data.chats[m.chat]
-  if (!chat || !chat.muted) return
-  if (chat.muted.includes(m.sender)) {
+  let db = loadMutes()
+  if (!db[m.chat]) return
+  if (db[m.chat].includes(m.sender)) {
     try {
       await conn.sendMessage(m.chat, {
         delete: {
