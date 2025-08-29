@@ -1,7 +1,6 @@
 let handler = async (m, { conn, args }) => {
-  if (!m.isGroup) return m.reply('❌ Este comando solo funciona en grupos')
-
-  if (!args[0]) return m.reply('✿ *Uso correcto ›* .kicknum +212 o .kicknum 212')
+ 
+  if (!args[0]) return m.reply(',✳️ *Uso correcto ›* .kicknum +212 o .kicknum 212')
 
   let prefix = args[0].replace(/\D/g, '') // solo números del prefijo
 
@@ -12,7 +11,7 @@ let handler = async (m, { conn, args }) => {
     let participants = metadata.participants.map(p => p.id)
     let toKick = participants.filter(user => user.startsWith(prefix))
 
-    if (toKick.length === 0) return m.reply(`✿ No encontré usuarios con el prefijo +${prefix} en el grupo.`)
+    if (toKick.length === 0) return m.reply(`❌ No encontré usuarios con el prefijo +${prefix} en el grupo.`)
 
     for (let user of toKick) {
       try {
@@ -21,7 +20,7 @@ let handler = async (m, { conn, args }) => {
     }
 
     let list = toKick.map(u => `@${u.split('@')[0]}`).join('\n')
-    m.reply(`✿ Expulsé a los siguientes usuarios con prefijo +${prefix}:\n${list}`, null, { mentions: toKick })
+    m.reply(`✅ Expulsé a los siguientes usuarios con prefijo +${prefix}:\n${list}`, null, { mentions: toKick })
 
   } catch (e) {
     console.error(e)
@@ -32,6 +31,8 @@ let handler = async (m, { conn, args }) => {
 handler.command = ['kicknum']
 handler.help = ['kicknum']
 handler.tags = ['group']
+handler.group = true
 handler.admin = true
+handler.botAdmin = true
 
 export default handler
