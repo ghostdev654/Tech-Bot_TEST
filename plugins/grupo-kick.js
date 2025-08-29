@@ -1,6 +1,5 @@
 var handler = async (m, { conn, args }) => {
-    if (!m.isGroup) return m.reply('🔒 Este comando solo se usa en grupos.');
-
+   
     const groupMetadata = await conn.groupMetadata(m.chat);
 
     // Debug: mostrar participantes y sus roles en consola
@@ -52,6 +51,9 @@ var handler = async (m, { conn, args }) => {
 
 handler.help = ['kick'];
 handler.tags = ['group'];
+handler.group = true
+handler.admin = true
+hanlder.botAdmin = true
 handler.command = ['kick','echar','hechar','sacar'];
 
 export default handler;
