@@ -14,8 +14,7 @@ function saveMutes(db) {
 }
 
 let handler = async (m, { conn, command, text }) => {
-  if (!m.isGroup) return m.reply("📌 Este comando solo funciona en grupos.")
-  if (!text && !m.mentionedJid[0] && !m.quoted) return m.reply(`⚠️ Usa: .${command} @user / número / reply`)
+    if (!text && !m.mentionedJid[0] && !m.quoted) return m.reply(`⚠️ Usa: .${command} @user / número / reply`)
 
   // cargar base
   let db = loadMutes()
