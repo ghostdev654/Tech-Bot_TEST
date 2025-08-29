@@ -1,6 +1,6 @@
 import fs from "fs"
 
-const FILE = "./mutes.json"
+const FILE = "./json/mute.json"
 
 // función para cargar
 function loadMutes() {
