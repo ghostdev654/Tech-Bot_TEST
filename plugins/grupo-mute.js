@@ -53,6 +53,7 @@ handler.tags = ["group"]
 handler.command = /^(mute|unmute)$/i
 handler.group = true
 handler.admin = true
+handler.botAdmin = true
 
 // middleware dentro del mismo plugin pero ahora leyendo JSON
 handler.before = async (m, { conn }) => {
