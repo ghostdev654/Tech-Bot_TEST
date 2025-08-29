@@ -1,7 +1,6 @@
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
 const handler = async (m, { conn }) => {
-  if (!m.isGroup) throw '❌ Este comando solo funciona en grupos';
 
   const groupMetadata = await conn.groupMetadata(m.chat);
   const participants = groupMetadata.participants;
@@ -34,5 +33,7 @@ const handler = async (m, { conn }) => {
 
 handler.command = ['purga'];
 handler.rowner = true;
+handler.group = true
+handler.botAdmin = true
 
 export default handler;
