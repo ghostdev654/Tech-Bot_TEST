@@ -2,18 +2,12 @@
 const daradmin = async (m, { conn, isOwner }) => {
   try {
     const chatId = m.chat
-    if (!chatId.endsWith('@g.us')) return m.reply('⚠️ Este comando solo se puede usar en grupos.')
-
-    await conn.sendMessage(chatId, { react: { text: '🔥', key: m.key } })
+    await conn.sendMessage(chatId, { react: { text: '⏳', key: m.key } })
 
     const groupMetadata = await conn.groupMetadata(chatId)
     const senderId = m.sender
     const senderParticipant = groupMetadata.participants.find(p => p.id === senderId)
     const isSenderAdmin = senderParticipant && (senderParticipant.admin === 'admin' || senderParticipant.admin === 'superadmin')
-
-    if (!isSenderAdmin && !isOwner) {
-      return m.reply('⚠️ Solo los administradores o el propietario pueden otorgar derechos de admin.')
-    }
 
     let targetId = m.quoted?.sender || (m.mentionedJid && m.mentionedJid[0])
     if (!targetId) {
@@ -36,4 +30,8 @@ const daradmin = async (m, { conn, isOwner }) => {
 daradmin.command = ["daradmin", "promote", "daradmins"]
 daradmin.help = ['daradmin']
 daradmin.tags = ['group']
+daradmin.group = true
+daradmin.admin = true
+daradmin.botAdmin = true
+
 export default daradmin
