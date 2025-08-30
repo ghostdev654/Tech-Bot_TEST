@@ -1,24 +1,25 @@
 import fs from 'fs'
-
-let file = './json/cerrados.json'
+let file = './cerrados.json'
 let cerrados = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : {}
 
-// Guardar al cerrar
 let handler = async (m, { conn, args }) => {
   if (!args[0]) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
   let time = ms(args[0])
   if (isNaN(time)) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
-  let reopenAt = Date.now() + time
+  let fin = Date.now() + time
 
-  // Guardar en json
-  cerrados[m.chat] = reopenAt
-  fs.writeFileSync(file, JSON.stringify(cerrados, null, 2))
-
-  // Cierra
+  // Cierra el grupo
   await conn.groupSettingUpdate(m.chat, 'announcement')
   m.reply(`🔒 Grupo cerrado por *${args[0]}*`)
+
+  // Guarda en JSON
+  cerrados[m.chat] = fin
+  fs.writeFileSync(file, JSON.stringify(cerrados, null, 2))
+
+  // Programa apertura
+  programarApertura(conn, m.chat, fin)
 }
 
 handler.help = ['cerrar [tiempo]']
@@ -29,7 +30,7 @@ handler.admin = true
 handler.botAdmin = true
 export default handler
 
-// Conversor
+// Conversor de tiempo tipo "5s/5m/5h" a ms
 function ms(str) {
   let m = str.match(/^(\d+)(s|m|h)$/)
   if (!m) return NaN
@@ -41,3 +42,31 @@ function ms(str) {
     case 'h': return val * 60 * 60 * 1000
   }
 }
+
+// 🔓 Reprograma aperturas al iniciar
+function programarApertura(conn, chat, fin) {
+  let delay = fin - Date.now()
+  if (delay <= 0) {
+    abrir(conn, chat)
+    return
+  }
+  setTimeout(() => abrir(conn, chat), delay)
+}
+
+async function abrir(conn, chat) {
+  try {
+    await conn.groupSettingUpdate(chat, 'not_announcement')
+    await conn.sendMessage(chat, { text: '✅ El grupo ha sido reabierto automáticamente.' })
+  } catch (e) {
+    console.error('❌ Error al reabrir grupo:', e)
+  }
+  delete cerrados[chat]
+  fs.writeFileSync(file, JSON.stringify(cerrados, null, 2))
+}
+
+// 🚀 Al iniciar el bot, reprogramar los que queden pendientes
+setTimeout(() => {
+  for (let chat in cerrados) {
+    programarApertura(global.conn, chat, cerrados[chat])
+  }
+}, 3000) // se espera 3s para que global.conn esté listo
