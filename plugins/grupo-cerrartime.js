@@ -27,7 +27,7 @@ handler.tags = ['group']
 handler.command = /^cerrar$/i
 handler.group = true
 handler.admin = true
-handler.botAdmin = true
+
 export default handler
 
 // Conversor de tiempo tipo "5s/5m/5h" a ms
