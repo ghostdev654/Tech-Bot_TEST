@@ -13,13 +13,6 @@ var handler = async (m, { conn, args }) => {
 
     console.log('🔎 Info usuario que manda:', userParticipant);
 
-    // Check si es admin o dueño del grupo
-    const isUserAdmin = userParticipant?.admin === 'admin' || userParticipant?.admin === 'superadmin' || m.sender === groupMetadata.owner;
-
-    if (!isUserAdmin) {
-        return m.reply('❌ Solo los admins pueden usar este comando.');
-    }
-
     // Obtener usuario a expulsar
     let user;
     if (m.mentionedJid && m.mentionedJid[0]) {
@@ -31,7 +24,7 @@ var handler = async (m, { conn, args }) => {
         if (!number) return m.reply('⚠️ Número inválido.');
         user = number + '@s.whatsapp.net';
     } else {
-        return m.reply('🚫 Mencioná, respondé o escribí un número para expulsar.');
+        return m.reply('⚠️ Mencioná, respondé o escribí un número para expulsar.');
     }
 
     const ownerGroup = groupMetadata.owner || m.chat.split`-`[0] + '@s.whatsapp.net';
@@ -43,9 +36,9 @@ var handler = async (m, { conn, args }) => {
 
     try {
         await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
-        await m.reply(`Se nos fue el User :c JJAJAJAJ`);
+        await m.reply(`🚷 *El usuario @${user.split("@")[0]} ha sido expulsado del grupo.*`);
     } catch (e) {
-        await m.reply(`No pude expulsar al usuario. Puede que no sea admin o que no tenga permisos nmms da admin.`);
+        await m.reply(`No pude expulsar al usuario.`);
     }
 };
 
