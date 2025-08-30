@@ -16,9 +16,10 @@ let handler = async (m, { conn, args }) => {
     }
   }, time)
 }
+
 handler.help = ['cerrar [tiempo]']
 handler.tags = ['group']
-handler.command = /^cerrar$/i
+handler.command = ['cerrar']
 handler.group = true
 handler.admin = true
 handler.botAdmin = true
