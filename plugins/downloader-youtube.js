@@ -105,7 +105,7 @@ let handler = async (m, { conn, args, command, usedPrefix }) => {
     let isAudio = false
 
     if (command == 'play' || command == 'ytmp3') {
-      apiUrl = `https://myapiadonix.vercel.app/download/ytdl?play=${encodeURIComponent(url)}`
+      apiUrl = `https://myapiadonix.vercel.app/download/ytmp3?url=${encodeURIComponent(url)}`
       isAudio = true
     } else if (command == 'play2' || command == 'ytmp4') {
       apiUrl = `https://myapiadonix.vercel.app/download/ytmp4?url=${encodeURIComponent(url)}`
