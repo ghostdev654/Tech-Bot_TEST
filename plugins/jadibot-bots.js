@@ -49,10 +49,10 @@ let handler = async (m, { conn }) => {
     let i = 1
     for (const [jid, data] of uniqueUsers) {
       txt += `*╭━➤ _Sub-Bot N° ${i++}_*\n`
-      txt += `*┃* @${data.numero}\n`
+      txt += `*┃* Número: @${data.numero}\n`
       txt += `*┃*\n`
       txt += `*┃* Tipo: ${data.isPremium ? '🌟 Premium' : '🆓 Free'}\n`
-      txt += `*╰━━━━━━━━━━━*\n\n`
+      txt += `*╰━━━━━━━━━━━━*\n\n`
       mentions.push(jid)
     }
   } else {
