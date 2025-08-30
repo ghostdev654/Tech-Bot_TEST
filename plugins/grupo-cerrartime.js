@@ -1,9 +1,6 @@
 let handler = async (m, { conn, args }) => {
 
-  if (!args[0]) {
-    await conn.groupSettingUpdate(m.chat, 'announcement')
-    return m.reply('🔒 Grupo cerrado indefinidamente.')
-  }
+  if (!args[0]) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
   let time = ms(args[0])
   if (isNaN(time)) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
@@ -22,6 +19,7 @@ let handler = async (m, { conn, args }) => {
     }
   }, time)
 }
+
 handler.help = ['cerrar [tiempo]']
 handler.tags = ['group']
 handler.command = /^cerrar$/i
