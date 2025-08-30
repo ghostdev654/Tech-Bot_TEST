@@ -39,9 +39,9 @@ global.jadi = 'JadiBots'
 global.yukiJadibts = true
 
 global.namecanal = ''
-global.idcanal = ''
+global.idcanal = '120363420319257428@newsletter'
 global.idcanal2 = ''
-global.canal = ''
+global.canal = 'https://whatsapp.com/channel/0029VbBtEAAAu3aU0nSJ6u1V'
 global.canalreg = ''
 
 global.ch = {
