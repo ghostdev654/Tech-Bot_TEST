@@ -8,6 +8,5 @@ handler.help = ['damelink']
 handler.tags = ['group']
 handler.command = ['damelink', 'link']
 handler.group = true
-handler.botAdmin = true
 
 export default handler
