@@ -32,6 +32,5 @@ daradmin.help = ['daradmin']
 daradmin.tags = ['group']
 daradmin.group = true
 daradmin.admin = true
-daradmin.botAdmin = true
 
 export default daradmin
