@@ -46,7 +46,6 @@ handler.help = ['kick'];
 handler.tags = ['group'];
 handler.group = true
 handler.admin = true
-handler.botAdmin = true
 handler.command = ['kick','echar','hechar','sacar'];
 
 export default handler;
