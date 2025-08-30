@@ -15,15 +15,14 @@ async function uploadImage(buffer) {
 
 let handler = async (m, { conn, usedPrefix, command }) => {
   try {
-    await m.react('🕓')
+    await m.react('⏳')
 
     let q = m.quoted ? m.quoted : m  
     let mime = (q.msg || q).mimetype || q.mediaType || ''  
 
     if (!mime) {  
       return conn.sendMessage(m.chat, {  
-        text: `❀ Por favor, envía una imagen o responde a una imagen usando *${usedPrefix + command}*`,  
-        ...global.rcanal  
+        text: `✳️ Por favor, envía una imagen o responde a una imagen usando *${usedPrefix + command}*`
       }, { quoted: m })  
     }  
 
@@ -35,8 +34,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     }  
 
     await conn.sendMessage(m.chat, {  
-      text: `✧ Mejorando tu imagen, espera...`,  
-      ...global.rcanal  
+      text: `⏳ Mejorando tu imagen, espera...`
     }, { quoted: m })  
 
     let img = await q.download?.()  
@@ -57,8 +55,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
 
     await conn.sendMessage(m.chat, {  
       image: buffer,  
-      caption: '✅ *Imagen mejorada con éxito*',  
-      ...global.rcanal  
+      caption: '✅ *Imagen mejorada con éxito*'
     }, { quoted: m })  
 
     await m.react('✅')
@@ -67,8 +64,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     console.error(e)
     await m.react('✖️')
     await conn.sendMessage(m.chat, {
-      text: '❌ Error al mejorar la imagen, inténtalo más tarde.',
-      ...global.rcanal
+      text: '❌ Error al mejorar la imagen, inténtalo más tarde.'
     }, { quoted: m })
   }
 }
