@@ -8,7 +8,6 @@ info: 'ℹ️ INFORMACIÓN',
 downloader: '⬇️ DESCARGAS',
 tools: '🛠️ HERRAMIENTAS',
 ia: '🤖 IA',
-owner: '👑 PROPIETARIO',
 game: '🎮 JUEGOS',
 group: '👥 GRUPOS',
 gacha: '🎲 GACHA ANIME',
@@ -35,7 +34,7 @@ before: `
 
 
 📅 Fecha: %date
-⏳ Tiempo activo: %uptime
+⏳ Tiempo activo: %uptime\n
 %readmore`.trimStart(),
 
 header: '\n*╭━━━━➤* %category ’',
