@@ -5,7 +5,7 @@ const configPath = path.join('./json', 'antiprivado.json')
 
 // Número específico del bot que podrá aplicar el antiprivado
 // ⚠ IMPORTANTE: revisa si tu JID es @s.whatsapp.net o @c.us en tu sesión
-const botNumberAllowed = '5491164239825@s.whatsapp.net'
+const botNumberAllowed = '59176459296@s.whatsapp.net'
 
 // === Leer configuración ===
 function readConfig() {
