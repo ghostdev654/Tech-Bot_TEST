@@ -1,5 +1,4 @@
 let handler = async (m, { conn, participants, command, text }) => {
-  if (!m.isGroup) return m.reply("📌 Este comando solo funciona en grupos.")
   if (!text && !m.mentionedJid[0] && !m.quoted) 
     return m.reply(`⚠️ Usa: .${command} @user / reply`)
 
@@ -24,6 +23,5 @@ handler.tags = ["group"]
 handler.command = /^demote$/i
 handler.group = true
 handler.admin = true
-handler.botAdmin = true
 
 export default handler
