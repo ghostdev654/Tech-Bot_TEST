@@ -1,23 +1,24 @@
-let handler = async (m, { conn, args }) => {
+import fs from 'fs'
 
+let file = './json/cerrados.json'
+let cerrados = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : {}
+
+// Guardar al cerrar
+let handler = async (m, { conn, args }) => {
   if (!args[0]) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
   let time = ms(args[0])
   if (isNaN(time)) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
+  let reopenAt = Date.now() + time
+
+  // Guardar en json
+  cerrados[m.chat] = reopenAt
+  fs.writeFileSync(file, JSON.stringify(cerrados, null, 2))
+
   // Cierra
   await conn.groupSettingUpdate(m.chat, 'announcement')
   m.reply(`🔒 Grupo cerrado por *${args[0]}*`)
-
-  // Programa la apertura
-  setTimeout(async () => {
-    try {
-      await conn.groupSettingUpdate(m.chat, 'not_announcement')
-      conn.reply(m.chat, '✅ El grupo ha sido reabierto automáticamente.', null)
-    } catch (e) {
-      console.error('❌ Error al reabrir grupo:', e)
-    }
-  }, time)
 }
 
 handler.help = ['cerrar [tiempo]']
@@ -28,7 +29,7 @@ handler.admin = true
 handler.botAdmin = true
 export default handler
 
-// Conversor de tiempo tipo "5s/5m/5h" a ms
+// Conversor
 function ms(str) {
   let m = str.match(/^(\d+)(s|m|h)$/)
   if (!m) return NaN
