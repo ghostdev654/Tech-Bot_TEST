@@ -15,7 +15,6 @@ reacciones: '💕 ANIME REACCIONES',
 eco: '💸 ECONOMÍA',
 search: '🔎 BUSCADORES',
 sticker: '📌 STICKERS',
-channel: '📺 CANALES',
 fun: '😂 DIVERSIÓN',
 }
 
