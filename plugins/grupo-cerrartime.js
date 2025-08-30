@@ -1,31 +1,36 @@
 let handler = async (m, { conn, args }) => {
 
+  if (!args[0]) {
+    await conn.groupSettingUpdate(m.chat, 'announcement')
+    return m.reply('🔒 Grupo cerrado indefinidamente.')
+  }
 
   let time = ms(args[0])
   if (isNaN(time)) return m.reply('⏳ Uso correcto: *.cerrar 10m*')
 
+  // Cierra
   await conn.groupSettingUpdate(m.chat, 'announcement')
   m.reply(`🔒 Grupo cerrado por *${args[0]}*`)
 
+  // Programa la apertura
   setTimeout(async () => {
     try {
       await conn.groupSettingUpdate(m.chat, 'not_announcement')
       conn.reply(m.chat, '✅ El grupo ha sido reabierto automáticamente.', null)
     } catch (e) {
-      console.error(e)
+      console.error('❌ Error al reabrir grupo:', e)
     }
   }, time)
 }
-
 handler.help = ['cerrar [tiempo]']
 handler.tags = ['group']
-handler.command = ['cerrar']
+handler.command = /^cerrar$/i
 handler.group = true
 handler.admin = true
 handler.botAdmin = true
 export default handler
 
-// Función para parsear el tiempo
+// Conversor de tiempo tipo "5s/5m/5h" a ms
 function ms(str) {
   let m = str.match(/^(\d+)(s|m|h)$/)
   if (!m) return NaN
