@@ -1,9 +1,5 @@
-let handler = async (m, { conn, args, isAdmin, isROwner }) => {
-  if (!(isAdmin || isROwner)) return dfail('admin', m, conn)
-  if (!args[0]) {
-    await conn.groupSettingUpdate(m.chat, 'announcement')
-    return m.reply('🔒 Grupo cerrado indefinidamente.')
-  }
+let handler = async (m, { conn, args }) => {
+
 
   let time = ms(args[0])
   if (isNaN(time)) return m.reply('⏳ Uso correcto: *.cerrargrupo 10m*')
@@ -24,6 +20,8 @@ handler.help = ['cerrar [tiempo]']
 handler.tags = ['group']
 handler.command = /^cerrargrupo$/i
 handler.group = true
+handler.admin = true
+handler.botAdmin = true
 export default handler
 
 // Función para parsear el tiempo
