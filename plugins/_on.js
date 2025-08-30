@@ -43,9 +43,7 @@ const antispamTracker = new Map()
 
 // === COMANDO ON/OFF ===
 const handler = async (m, { conn, command, args, isAdmin }) => {
-  if (!m.isGroup) return m.reply('🔒 Solo funciona en grupos.')
-  if (!isAdmin) return m.reply('❌ Solo admins pueden cambiar configuraciones.')
-
+  
   const type = (args[0] || '').toLowerCase()
   const enable = command === 'on'
   const validTypes = ['antilink', 'welcome', 'antiarabe', 'modoadmin', 'antispam']
@@ -65,7 +63,8 @@ const handler = async (m, { conn, command, args, isAdmin }) => {
 
 handler.command = ['on', 'off']
 handler.group = true
-handler.register = true
+handler.admin = true
+handler.botAdmin = true
 handler.tags = ['group']
 handler.help = ['on <función>', 'off <función>']
 
@@ -185,7 +184,7 @@ if (chat.antispam && !m.fromMe) {
     if (m.messageStubType === 27) {
       await conn.sendMessage(m.chat, {
         image: { url: profilePic },
-        caption: `↷✦; w e l c o m e ❞\n\n✿ *Bienvenid@* a *${groupMetadata.subject}* \n✰ ${userMention}\n✦ Ahora somos *${groupSize}*`,
+        caption: `👋 *BIENVENIDO*\n\n✳️ *Bienvenid@* a *${groupMetadata.subject}* \n👤 ${userMention}\n✨ Ahora somos *${groupSize}* miembros :)`,
         contextInfo: { mentionedJid: [userId] }
       })
     }
@@ -193,7 +192,7 @@ if (chat.antispam && !m.fromMe) {
     if ([28, 32].includes(m.messageStubType)) {
       await conn.sendMessage(m.chat, {
         image: { url: profilePic },
-        caption: `↷✦; b y e ❞\n\n✿ *Adiós* de *${groupMetadata.subject}* \n✰ ${userMention}\n✦ Somos *${groupSize}* aún.`,
+        caption: `👋 *ADIÓS*\n\n✳️ *Adiós* de *${groupMetadata.subject}* \n👤 ${userMention}\n✨ Somos *${groupSize}* miembors aún. :)`,
         contextInfo: { mentionedJid: [userId] }
       })
     }
