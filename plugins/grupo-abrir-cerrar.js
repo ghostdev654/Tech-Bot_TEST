@@ -15,6 +15,5 @@ handler.tags = ['grupo']
 handler.command = ['abrirgrupo', 'cerrargrupo']
 handler.group = true
 handler.admin = true
-handler.botAdmin = true
 
 export default handler
