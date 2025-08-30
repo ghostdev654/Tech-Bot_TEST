@@ -4,10 +4,10 @@ import path from 'path'
 const configPath = path.join('./json', 'antiprivado.json')
 
 // Número específico del bot que podrá aplicar el antiprivado
-// ⚠ IMPORTANTE: Formato correcto según tu WA (revisar si es @s.whatsapp.net o @c.us)
+// ⚠ IMPORTANTE: revisa si tu JID es @s.whatsapp.net o @c.us en tu sesión
 const botNumberAllowed = '5491164239825@s.whatsapp.net'
 
-// Leer configuración
+// === Leer configuración ===
 function readConfig() {
   try {
     if (!fs.existsSync(configPath)) {
@@ -20,12 +20,12 @@ function readConfig() {
   }
 }
 
-// Guardar configuración
+// === Guardar configuración ===
 function writeConfig(data) {
   fs.writeFileSync(configPath, JSON.stringify(data, null, 2))
 }
 
-// === ON/OFF SOLO OWNER ===
+// === COMANDO ON/OFF SOLO OWNER ===
 const handler = async (m, { command, args }) => {
   let config = readConfig()
   const type = (args[0] || '').toLowerCase()
@@ -48,32 +48,36 @@ handler.help = ['on2 antiprivado', 'off2 antiprivado']
 
 // === MIDDLEWARE ANTIPRIVADO ===
 handler.before = async (m, { conn }) => {
-  if (m.isGroup) return false // solo privado
+  if (m.isGroup) return false // solo aplica en privado
 
-  // Normalizar jid del bot para evitar errores de @s.whatsapp.net vs @c.us
+  // Normalizar JID del bot
   const botJid = (conn.user?.jid || '').replace(/@c\.us$/, '@s.whatsapp.net')
   if (botJid !== botNumberAllowed) return false
 
   let config = readConfig()
   if (!config.antiprivado) return false
 
-  // Normalizar ownerNumbers
-  const ownerNumbers = global.owner?.map(o =>
-    ((Array.isArray(o) ? o[0] : o).replace(/[^0-9]/g, '') + '@s.whatsapp.net')
-  ) || []
+  // === Lista de Owners normalizados ===
+  const ownerNumbers = (global.owner || []).map(o => {
+    const number = Array.isArray(o) ? o[0] : o
+    return number.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+  })
 
-  if (!ownerNumbers.includes(m.sender)) {
-    try {
-      // updateBlockStatus usa true/false según la versión de Baileys
-      await conn.updateBlockStatus(m.sender, true)
-      console.log(`Bloqueado: ${m.sender}`)
-    } catch (e) {
-      console.error('Error bloqueando usuario:', e)
-    }
-    return true
+  // Si el remitente es owner → no bloquear
+  if (ownerNumbers.includes(m.sender)) {
+    console.log(`📌 [Antiprivado] ${m.sender} es owner, no se bloquea.`)
+    return false
   }
 
-  return false
+  try {
+    // Bloquear al usuario
+    await conn.updateBlockStatus(m.sender, 'block') // algunos usan 'block' en lugar de true
+    console.log(`🚫 Bloqueado: ${m.sender}`)
+  } catch (e) {
+    console.error('Error bloqueando usuario:', e)
+  }
+
+  return true
 }
 
 export default handler
